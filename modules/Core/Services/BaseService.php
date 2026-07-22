@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Services;
 
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -21,11 +22,13 @@ abstract class BaseService
      */
     protected function dbTransaction(callable $callback)
     {
-        return DB::transaction($callback);
+        return DB::transaction(Closure::fromCallable($callback));
     }
 
     /**
      * Log a message with contextual module information.
+     *
+     * @param array<string, mixed> $context
      */
     protected function logInfo(string $message, array $context = []): void
     {
@@ -34,6 +37,8 @@ abstract class BaseService
 
     /**
      * Log an error message with contextual module information and stack trace.
+     *
+     * @param array<string, mixed> $context
      */
     protected function logError(string $message, Throwable $exception, array $context = []): void
     {

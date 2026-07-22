@@ -1,0 +1,8 @@
+parameters:
+    level: 8
+    paths:
+        - app
+        - modules
+        - tests
+    excludePaths:
+        - modules/*/database/*

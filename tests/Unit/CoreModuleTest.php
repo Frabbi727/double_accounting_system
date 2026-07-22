@@ -7,8 +7,11 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use Modules\Core\DTOs\BaseDTO;
 use Modules\Core\ValueObjects\ValueObject;
+use Modules\Core\Traits\HasUUID;
+use Modules\Core\Traits\HasOptimisticLocking;
+use Illuminate\Database\Eloquent\Model;
 
-class DummyDTO extends BaseDTO
+readonly class DummyDTO extends BaseDTO
 {
     public function __construct(
         public string $name,
@@ -16,12 +19,26 @@ class DummyDTO extends BaseDTO
     ) {}
 }
 
-class DummyValueObject extends ValueObject
+readonly class DummyValueObject extends ValueObject
 {
     public function __construct(
         public string $currency,
         public int $amount
     ) {}
+}
+
+/**
+ * @property int $version
+ */
+class DummyModel extends Model
+{
+    use HasUUID;
+    use HasOptimisticLocking;
+
+    /**
+     * @var array<string>
+     */
+    protected $guarded = [];
 }
 
 class CoreModuleTest extends TestCase
@@ -52,5 +69,15 @@ class CoreModuleTest extends TestCase
         $this->assertTrue($vo1->equals($vo2));
         $this->assertFalse($vo1->equals($vo3));
         $this->assertFalse($vo1->equals($vo4));
+    }
+
+    /**
+     * Test that HasUUID trait methods behave correctly.
+     */
+    public function test_has_uuid_configuration(): void
+    {
+        $model = new DummyModel();
+        $this->assertFalse($model->getIncrementing());
+        $this->assertEquals('string', $model->getKeyType());
     }
 }

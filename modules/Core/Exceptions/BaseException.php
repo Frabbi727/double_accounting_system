@@ -11,8 +11,17 @@ abstract class BaseException extends Exception
 {
     protected string $errorCode;
     protected int $statusCode;
+    
+    /**
+     * @var array<string, mixed>
+     */
     protected array $context;
 
+    /**
+     * BaseException constructor.
+     *
+     * @param array<string, mixed> $context
+     */
     public function __construct(
         string $message = "",
         string $errorCode = "SYSTEM_ERROR",
@@ -44,6 +53,8 @@ abstract class BaseException extends Exception
 
     /**
      * Get the validation/contextual details of the error.
+     *
+     * @return array<string, mixed>
      */
     public function getContext(): array
     {

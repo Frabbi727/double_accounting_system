@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Core\Traits;
 
-use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Exceptions\ConcurrencyException;
 
+/**
+ * Trait HasOptimisticLocking
+ *
+ * @property int $version
+ */
 trait HasOptimisticLocking
 {
     /**
@@ -14,7 +18,7 @@ trait HasOptimisticLocking
      */
     protected static function bootHasOptimisticLocking(): void
     {
-        static::updating(function (Model $model) {
+        static::updating(function (self $model) {
             $originalVersion = $model->getOriginal('version');
 
             if ($model->version !== $originalVersion) {

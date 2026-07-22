@@ -7,7 +7,6 @@ namespace Modules\Core\Repositories\Eloquent;
 use Modules\Core\Repositories\Contracts\BaseRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 abstract class EloquentRepository implements BaseRepositoryInterface
 {
@@ -34,7 +33,9 @@ abstract class EloquentRepository implements BaseRepositoryInterface
      */
     public function find(string $id): ?Model
     {
-        return $this->model->find($id);
+        /** @var Model|null $record */
+        $record = $this->model->newQuery()->find($id);
+        return $record;
     }
 
     /**
@@ -42,27 +43,35 @@ abstract class EloquentRepository implements BaseRepositoryInterface
      */
     public function findOrFail(string $id): Model
     {
-        return $this->model->findOrFail($id);
+        return $this->model->newQuery()->findOrFail($id);
     }
 
     /**
      * Get all records.
+     *
+     * @return Collection<int, Model>
      */
     public function all(): Collection
     {
-        return $this->model->all();
+        /** @var Collection<int, Model> $collection */
+        $collection = $this->model->newQuery()->get();
+        return $collection;
     }
 
     /**
      * Create a new record.
+     *
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Model
     {
-        return $this->model->create($data);
+        return $this->model->newQuery()->create($data);
     }
 
     /**
      * Update an existing record.
+     *
+     * @param array<string, mixed> $data
      */
     public function update(string $id, array $data): bool
     {

@@ -20,6 +20,8 @@ abstract readonly class ValueObject
 
     /**
      * Get the array representation of the value object.
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

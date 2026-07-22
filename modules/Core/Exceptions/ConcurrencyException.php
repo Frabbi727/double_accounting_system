@@ -6,6 +6,11 @@ namespace Modules\Core\Exceptions;
 
 class ConcurrencyException extends BaseException
 {
+    /**
+     * ConcurrencyException constructor.
+     *
+     * @param array<string, mixed> $context
+     */
     public function __construct(
         string $message = "The resource has been modified by another request. Please reload and try again.",
         array $context = []

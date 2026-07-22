@@ -15,7 +15,7 @@ abstract class BaseModel extends Model
      * The attributes that aren't mass assignable.
      * Guarding is managed through Request and Service level DTO validation.
      *
-     * @var array<int, string>|bool
+     * @var array<string>
      */
     protected $guarded = [];
 }

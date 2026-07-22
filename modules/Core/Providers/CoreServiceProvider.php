@@ -19,7 +19,7 @@ class CoreServiceProvider extends BaseModuleServiceProvider
      */
     protected function getModulePath(): string
     {
-        return dirname(__DIR__, 2);
+        return dirname(__DIR__);
     }
 
     /**

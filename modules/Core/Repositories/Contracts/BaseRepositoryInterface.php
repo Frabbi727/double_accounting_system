@@ -21,16 +21,22 @@ interface BaseRepositoryInterface
 
     /**
      * Get all records.
+     *
+     * @return Collection<int, Model>
      */
     public function all(): Collection;
 
     /**
      * Create a new record.
+     *
+     * @param array<string, mixed> $data
      */
     public function create(array $data): Model;
 
     /**
      * Update an existing record.
+     *
+     * @param array<string, mixed> $data
      */
     public function update(string $id, array $data): bool;
 
