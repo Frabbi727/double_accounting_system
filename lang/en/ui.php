@@ -15,6 +15,15 @@ return [
         'purchases' => 'Purchases',
         'reports' => 'Reports',
         'logout' => 'Logout',
+        'collapse' => 'Collapse',
+        'expand' => 'Expand',
+    ],
+
+    'nav_group' => [
+        'master' => 'Master Data',
+        'transaction' => 'Transactions',
+        'report' => 'Reports',
+        'settings' => 'Settings',
     ],
 
     'dashboard' => [

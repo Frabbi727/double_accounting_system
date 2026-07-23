@@ -15,6 +15,15 @@ return [
         'purchases' => 'ক্রয়',
         'reports' => 'রিপোর্ট',
         'logout' => 'লগআউট',
+        'collapse' => 'সংকুচিত করুন',
+        'expand' => 'প্রসারিত করুন',
+    ],
+
+    'nav_group' => [
+        'master' => 'মাস্টার ডেটা',
+        'transaction' => 'লেনদেন',
+        'report' => 'রিপোর্ট',
+        'settings' => 'সেটিংস',
     ],
 
     'dashboard' => [
