@@ -190,6 +190,13 @@ return [
         'incentive' => 'Incentives',
         'rebate' => 'Rebate',
     ],
+    'backup' => [
+        'title' => 'Backup',
+        'heading' => 'Data Backup',
+        'intro' => 'Download a full JSON snapshot of your data. Keep it somewhere safe (a phone, an email to yourself, a pen drive).',
+        'download' => 'Download Backup',
+        'note' => 'The file contains all accounts, ledger entries, sales, purchases, stock and settings.',
+    ],
     'shop_profile' => [
         'title' => 'Shop Profile',
         'name' => 'Shop Name',
