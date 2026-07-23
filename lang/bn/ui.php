@@ -24,9 +24,16 @@ return [
         'receivable' => 'কাস্টমার বাকি (পাব)',
         'payable' => 'সাপ্লায়ার বাকি (দিব)',
         'month_profit' => 'এ মাসের লাভ',
+        'month_sales' => 'এ মাসের বিক্রয়',
         'stock_value' => 'স্টকের মূল্য',
         'opening_locked' => 'ওপেনিং লক করা হয়েছে',
         'opening_not_locked' => 'ওপেনিং এখনো লক করা হয়নি',
+        'quick_actions' => 'দ্রুত কাজ',
+        'low_stock' => 'কম স্টক',
+        'low_stock_none' => 'রিঅর্ডার লেভেলের নিচে কোনো পণ্য নেই',
+        'recent_activity' => 'সাম্প্রতিক লেনদেন',
+        'reorder' => 'রিঅর্ডার',
+        'in_stock' => 'স্টকে আছে',
     ],
 
     'opening' => [

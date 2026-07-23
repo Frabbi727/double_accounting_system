@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (ইনসেনটিভ/রিবেট UI সহ)
+শেষ আপডেট: 2026-07-23 (পূর্ণ ড্যাশবোর্ড সহ)
 
 ---
 
@@ -168,13 +168,25 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৯১/৯১ পাস।**
 
+## ✅ ধাপ ১৫ — পূর্ণ ড্যাশবোর্ড (DONE, tested)
+
+বিদ্যমান KPI কার্ডের সাথে যোগ (`DashboardController` + `shop/dashboard.blade.php`):
+- **Quick actions** — role-gated বোতাম (বিক্রয়/ক্রয়/খরচ/পেমেন্ট, permission অনুসারে)।
+- **এ মাসের বিক্রয়** KPI (4010-এ month-to-date credit)।
+- **কম স্টক alert** — reorder-এর নিচের পণ্য (stock report থেকে, সবাই দেখে; report.view থাকলে low-stock রিপোর্টে লিঙ্ক)।
+- **সাম্প্রতিক লেনদেন** — সর্বশেষ ৬টা journal entry (**report.view-gated**; day-book-এ লিঙ্ক)।
+- month profit আগের মতোই cost.view-gated। নতুন `accountMovementBetween()` helper; `lang/*/ui.php`-এ dashboard key।
+- টেস্ট: `tests/Feature/DashboardTest.php` — **২/২ পাস** (owner পূর্ণ ড্যাশবোর্ড: month sales/profit/recent activity/low-stock পণ্য দেখে; salesperson-এ profit ও recent activity লুকানো)।
+
+**বর্তমানে পুরো suite: ৯৩/৯৩ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): Dashboard পূর্ণ, audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
