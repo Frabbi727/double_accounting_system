@@ -7,6 +7,8 @@ use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\JournalEntry;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Accounting\LedgerService;
+use App\Support\Money;
+use Modules\Accounting\Services\Reporting\ReportService;
 
 /**
  * Records cash/bank payments to and from parties.
@@ -25,8 +27,11 @@ class PaymentService
 
     private const PAYABLE_CODE = '2010';
 
+    private const EPSILON = 0.005;
+
     public function __construct(
         private LedgerService $ledger,
+        private ReportService $reports,
     ) {}
 
     /**
@@ -35,6 +40,7 @@ class PaymentService
     public function receiveFromCustomer(Customer $customer, array $data): JournalEntry
     {
         $amount = $this->amount($data);
+        $this->guardAgainstOverpayment('customer', $customer->id, $amount);
         $account = $this->paymentAccount($data);
         $date = $data['date'] ?? now()->toDateString();
 
@@ -56,6 +62,7 @@ class PaymentService
     public function payToSupplier(Supplier $supplier, array $data): JournalEntry
     {
         $amount = $this->amount($data);
+        $this->guardAgainstOverpayment('supplier', $supplier->id, $amount);
         $account = $this->paymentAccount($data);
         $date = $data['date'] ?? now()->toDateString();
 
@@ -79,6 +86,24 @@ class PaymentService
         }
 
         return $amount;
+    }
+
+    /**
+     * A receipt/payment can never exceed what the party currently owes (or is
+     * owed). Partial payments are fine; overpayment — which would flip the
+     * control account into an advance balance — is rejected.
+     *
+     * @param  'customer'|'supplier'  $party
+     */
+    private function guardAgainstOverpayment(string $party, int $id, float $amount): void
+    {
+        $due = $this->reports->partyDue($party, $id);
+
+        if ($amount > $due + self::EPSILON) {
+            throw new \InvalidArgumentException(__('finance.errors.exceeds_due', [
+                'due' => Money::taka(max($due, 0)),
+            ]));
+        }
     }
 
     private function paymentAccount(array $data): Account

@@ -7,6 +7,7 @@ use App\Support\Money;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Modules\Accounting\Services\Master\ProductService;
 use Modules\Sale\Models\Sale;
@@ -46,6 +47,7 @@ class InvoicePrintTest extends TestCase
         app(PeriodLockService::class)->lockOpening(User::factory()->create()->id);
 
         return app(SaleService::class)->create([
+            'customer_id' => Customer::create(['name' => 'ক্রেতা'])->id,
             'date' => '2026-08-06',
             'items' => [['product_id' => $product->id, 'qty' => 10, 'unit_price' => 55]],
             'paid_amount' => 400,

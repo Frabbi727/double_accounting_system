@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Services\Reporting;
 
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Enums\AccountType;
 use Modules\Accounting\Models\Account;
@@ -175,18 +176,23 @@ class ReportService
 
     /**
      * Aging of receivables (customers) or payables (suppliers), bucketed by
-     * how long the opening debt has been outstanding.
+     * how long each outstanding charge has been unpaid.
      *
-     * Note: this ages the OPENING party balances (the only party detail the
-     * system currently records at line level). Once invoiced sales/purchases
-     * carry due dates, this method extends to them.
+     * Fully ledger-derived: a party's charges are their opening balance rows
+     * (dated by original_date) plus every invoice/bill that raised the control
+     * account (Sale/Purchase), while receipts/payments and returns form a
+     * payment pool applied FIFO — oldest charge first. Each surviving charge is
+     * bucketed by its own age, so the subsidiary total always equals the party's
+     * slice of the receivable (1030) / payable (2010) control account.
      *
      * @param  'customer'|'supplier'  $party
      * @return array{rows: array, buckets: array, total: float}
      */
     public function aging(string $party = 'customer', ?string $asOf = null): array
     {
-        $model = $party === 'supplier' ? Supplier::class : Customer::class;
+        $isCustomer = $party !== 'supplier';
+        $model = $isCustomer ? Customer::class : Supplier::class;
+        $asOfDate = $asOf ? Carbon::parse($asOf) : now();
 
         $bucketLabels = ['0-30', '31-60', '61-90', '90+'];
         $buckets = array_fill_keys($bucketLabels, 0.0);
@@ -194,22 +200,60 @@ class ReportService
         $total = 0.0;
 
         foreach ($model::all() as $record) {
-            $open = $record->openingBalances()->whereNull('reversed_at')->get();
-            if ($open->isEmpty()) {
-                continue;
+            // Dated charges (things that raise what is owed), oldest first.
+            $charges = [];
+
+            foreach ($record->openingBalances()->whereNull('reversed_at')->get() as $item) {
+                $charges[] = ['date' => $item->original_date->toDateString(), 'amount' => (float) $item->amount];
             }
+
+            // Payment pool (receipts/payments and returns) reduces the oldest debt.
+            $payments = 0.0;
+
+            foreach ($this->partyControlLines($isCustomer, $record->id) as $line) {
+                // Customer control (AR): a debit raises the debt, a credit clears it.
+                // Supplier control (AP): reversed.
+                $net = $isCustomer
+                    ? (float) $line->debit - (float) $line->credit
+                    : (float) $line->credit - (float) $line->debit;
+
+                if ($net > 0) {
+                    $charges[] = ['date' => $line->date, 'amount' => $net];
+                } else {
+                    $payments += -$net;
+                }
+            }
+
+            usort($charges, fn ($a, $b) => $a['date'] <=> $b['date']);
+
+            // Apply the payment pool FIFO against the oldest charges.
+            foreach ($charges as &$charge) {
+                if ($payments <= 0) {
+                    break;
+                }
+                $applied = min($payments, $charge['amount']);
+                $charge['amount'] -= $applied;
+                $payments -= $applied;
+            }
+            unset($charge);
 
             $perRow = array_fill_keys($bucketLabels, 0.0);
             $rowTotal = 0.0;
 
-            foreach ($open as $item) {
-                $age = $item->ageInDays($asOf);
+            foreach ($charges as $charge) {
+                if ($charge['amount'] <= 0) {
+                    continue;
+                }
+                $age = (int) Carbon::parse($charge['date'])->diffInDays($asOfDate);
                 $bucket = $this->agingBucket($age);
-                $amount = (float) $item->amount;
 
-                $perRow[$bucket] += $amount;
-                $buckets[$bucket] += $amount;
-                $rowTotal += $amount;
+                $perRow[$bucket] += $charge['amount'];
+                $buckets[$bucket] += $charge['amount'];
+                $rowTotal += $charge['amount'];
+            }
+
+            if (abs($rowTotal) < self::EPSILON) {
+                continue;
             }
 
             $total += $rowTotal;
@@ -361,30 +405,7 @@ class ReportService
         /** @var Customer|Supplier $record */
         $record = ($isCustomer ? Customer::class : Supplier::class)::findOrFail($id);
 
-        $controlId = Account::where('code', $isCustomer ? '1030' : '2010')->value('id');
-
-        // Documents (sales/purchases) whose ledger entries reference this party.
-        $docIds = DB::table($isCustomer ? 'sales' : 'purchases')
-            ->where($isCustomer ? 'customer_id' : 'supplier_id', $id)
-            ->pluck('id')->all();
-
-        $docTypes = $isCustomer ? ['Sale', 'SaleReturn'] : ['Purchase', 'PurchaseReturn'];
-        $paymentType = $isCustomer ? 'PaymentIn' : 'PaymentOut';
-
-        $lines = DB::table('journal_entry_lines as l')
-            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
-            ->where('l.account_id', $controlId)
-            ->where(function ($q) use ($docTypes, $docIds, $paymentType, $id) {
-                $q->where(function ($w) use ($docTypes, $docIds) {
-                    $w->whereIn('e.reference_type', $docTypes);
-                    empty($docIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $docIds);
-                })->orWhere(function ($w) use ($paymentType, $id) {
-                    $w->where('e.reference_type', $paymentType)->where('e.reference_id', $id);
-                });
-            })
-            ->orderBy('e.date')->orderBy('e.id')
-            ->select(['e.date', 'e.description', 'l.debit', 'l.credit'])
-            ->get();
+        $lines = $this->partyControlLines($isCustomer, $id);
 
         $opening = round($record->openingBalance(), 2);
         $running = $opening;
@@ -420,6 +441,95 @@ class ReportService
             'total_payment' => round($totalPayment, 2),
             'closing' => round($running, 2),
         ];
+    }
+
+    /**
+     * Every customer (or supplier) with a non-zero outstanding balance, each at
+     * its true ledger due (opening + control-account movement), name-sorted.
+     * Powers the "customer due / supplier due" settlement list.
+     *
+     * @param  'customer'|'supplier'  $party
+     * @return array<int, array{id:int, name:string, due:float}>
+     */
+    public function partyDues(string $party): array
+    {
+        $isCustomer = $party !== 'supplier';
+        $model = $isCustomer ? Customer::class : Supplier::class;
+        $rows = [];
+
+        foreach ($model::orderBy('name')->get() as $record) {
+            $due = $this->recordDue($isCustomer, $record);
+
+            if (abs($due) > self::EPSILON) {
+                $rows[] = ['id' => $record->id, 'name' => $record->name, 'due' => $due];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * The current outstanding due for a single party — the authoritative cap a
+     * receipt/payment may not exceed. 0 when the party has no balance.
+     *
+     * @param  'customer'|'supplier'  $party
+     */
+    public function partyDue(string $party, int $id): float
+    {
+        $isCustomer = $party !== 'supplier';
+        $record = ($isCustomer ? Customer::class : Supplier::class)::find($id);
+
+        return $record ? $this->recordDue($isCustomer, $record) : 0.0;
+    }
+
+    /** Opening balance plus every control-account movement for one party. */
+    private function recordDue(bool $isCustomer, Customer|Supplier $record): float
+    {
+        $due = $record->openingBalance();
+
+        foreach ($this->partyControlLines($isCustomer, $record->id) as $line) {
+            $due += $isCustomer
+                ? (float) $line->debit - (float) $line->credit
+                : (float) $line->credit - (float) $line->debit;
+        }
+
+        return round($due, 2);
+    }
+
+    /**
+     * Every ledger line that touches a party's control account (receivable
+     * 1030 / payable 2010): their invoices/bills (Sale/Purchase), returns
+     * (SaleReturn/PurchaseReturn) and receipts/payments (PaymentIn/PaymentOut),
+     * in date order. Excludes the Opening entry — callers seed that separately.
+     *
+     * @return Collection<int, object{date:string, description:string, debit:string, credit:string}>
+     */
+    private function partyControlLines(bool $isCustomer, int $id): Collection
+    {
+        $controlId = Account::where('code', $isCustomer ? '1030' : '2010')->value('id');
+
+        // Documents (sales/purchases) whose ledger entries reference this party.
+        $docIds = DB::table($isCustomer ? 'sales' : 'purchases')
+            ->where($isCustomer ? 'customer_id' : 'supplier_id', $id)
+            ->pluck('id')->all();
+
+        $docTypes = $isCustomer ? ['Sale', 'SaleReturn'] : ['Purchase', 'PurchaseReturn'];
+        $paymentType = $isCustomer ? 'PaymentIn' : 'PaymentOut';
+
+        return DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('l.account_id', $controlId)
+            ->where(function ($q) use ($docTypes, $docIds, $paymentType, $id) {
+                $q->where(function ($w) use ($docTypes, $docIds) {
+                    $w->whereIn('e.reference_type', $docTypes);
+                    empty($docIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $docIds);
+                })->orWhere(function ($w) use ($paymentType, $id) {
+                    $w->where('e.reference_type', $paymentType)->where('e.reference_id', $id);
+                });
+            })
+            ->orderBy('e.date')->orderBy('e.id')
+            ->select(['e.date', 'e.description', 'l.debit', 'l.credit'])
+            ->get();
     }
 
     // ------------------------------------------------------------------

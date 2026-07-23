@@ -6,6 +6,7 @@ use App\Models\User;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Accounting\Models\Account;
+use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\Product;
 use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Master\ProductService;
@@ -82,7 +83,10 @@ class SaleTest extends TestCase
         $product = $this->productWithStock(100, 40, 55);
 
         // Gross 550, discount 50, net 500, paid 200 → receivable 300.
+        // A credit sale must name the customer (guard against orphaned dues).
+        $customer = Customer::create(['name' => 'ক্রেতা']);
         app(SaleService::class)->create([
+            'customer_id' => $customer->id,
             'date' => '2026-08-06',
             'items' => [
                 ['product_id' => $product->id, 'qty' => 10, 'unit_price' => 55],
@@ -136,6 +140,20 @@ class SaleTest extends TestCase
         $product = $this->productWithStock(5, 40, 55);
 
         $this->expectException(\RuntimeException::class);
+
+        app(SaleService::class)->create([
+            'date' => '2026-08-06',
+            'items' => [['product_id' => $product->id, 'qty' => 10, 'unit_price' => 55]],
+            'paid_amount' => 0,
+        ]);
+    }
+
+    public function test_credit_sale_without_a_customer_is_rejected(): void
+    {
+        $product = $this->productWithStock(100, 40, 55);
+
+        // Unpaid balance with no customer would orphan the receivable.
+        $this->expectException(\InvalidArgumentException::class);
 
         app(SaleService::class)->create([
             'date' => '2026-08-06',

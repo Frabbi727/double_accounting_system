@@ -142,6 +142,12 @@ class SaleService
 
             $receivable = round($net - $paid, 2);
 
+            // A credit sale (unpaid balance) must name the customer, otherwise the
+            // receivable posts to AR 1030 attributable to nobody — an orphan due.
+            if ($receivable > self::EPSILON && empty($data['customer_id'])) {
+                throw new \InvalidArgumentException(__('sale.errors.credit_needs_customer'));
+            }
+
             // --- Entry 1: revenue (only non-zero lines) ---
             $revenueLines = [];
             if ($paid > 0) {

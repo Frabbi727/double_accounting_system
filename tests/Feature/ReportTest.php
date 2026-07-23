@@ -13,6 +13,7 @@ use Modules\Accounting\Services\Master\CustomerService;
 use Modules\Accounting\Services\Master\ProductService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Modules\Finance\Services\ExpenseService;
+use Modules\Finance\Services\PaymentService;
 use Modules\Sale\Services\SaleService;
 use Tests\TestCase;
 
@@ -137,12 +138,12 @@ class ReportTest extends TestCase
 
     public function test_aging_buckets_receivables_by_age(): void
     {
-        // Cut-off is 2026-07-31. original_date drives the bucket.
+        // As-of the cut-off (2026-07-22); original_date drives the bucket.
         app(CustomerService::class)->create([
             'name' => 'করিম',
             'opening_items' => [
-                ['amount' => 1000, 'original_date' => '2026-07-20'],   // ~11 days → 0-30
-                ['amount' => 2000, 'original_date' => '2026-05-01'],   // ~91 days → 90+
+                ['amount' => 1000, 'original_date' => '2026-07-20'],   // ~2 days → 0-30
+                ['amount' => 2000, 'original_date' => '2026-04-01'],   // ~112 days → 90+
             ],
         ]);
 
@@ -157,5 +158,47 @@ class ReportTest extends TestCase
             ->balance(Account::where('code', '1030')->first());
         $subsidiary = Customer::all()->sum(fn (Customer $c) => $c->openingBalance());
         $this->assertEqualsWithDelta($subsidiary, $control, 0.01);
+    }
+
+    public function test_aging_is_ledger_derived_and_applies_payments_fifo(): void
+    {
+        // করিম owes 3000 from two dated opening debts.
+        $customer = app(CustomerService::class)->create([
+            'name' => 'করিম',
+            'opening_items' => [
+                ['amount' => 2000, 'original_date' => '2026-05-01'],   // oldest → 90+
+                ['amount' => 1000, 'original_date' => '2026-07-20'],   // recent → 0-30
+            ],
+        ]);
+
+        // A credit sale (paid 0) raises the receivable by 500 on 2026-08-06.
+        $product = app(ProductService::class)->create([
+            'name' => 'সাবান', 'unit' => 'pcs',
+            'cost_price' => 40, 'sale_price' => 50,
+            'opening_qty' => 100, 'opening_cost' => 40,
+        ]);
+        app(SaleService::class)->create([
+            'customer_id' => $customer->id, 'date' => '2026-08-06',
+            'items' => [['product_id' => $product->id, 'qty' => 10, 'unit_price' => 50]],
+            'paid_amount' => 0,
+        ]);
+
+        // A 1500 receipt must clear the OLDEST charge first (FIFO).
+        app(PaymentService::class)->receiveFromCustomer($customer, [
+            'amount' => 1500, 'date' => '2026-08-06',
+        ]);
+
+        $aging = app(ReportService::class)->aging('customer', '2026-08-10');
+
+        // 3000 opening + 500 sale − 1500 payment = 2000 outstanding.
+        $this->assertEqualsWithDelta(2000, $aging['total'], 0.01);
+        // FIFO ate the 2000 (90+) down to 500; newer buckets untouched: 1000 + 500 sale.
+        $this->assertEqualsWithDelta(500, $aging['buckets']['90+'], 0.01);
+        $this->assertEqualsWithDelta(1500, $aging['buckets']['0-30'], 0.01);
+
+        // Subsidiary total must equal the AR control account.
+        $control = app(LedgerService::class)
+            ->balance(Account::where('code', '1030')->first());
+        $this->assertEqualsWithDelta($control, $aging['total'], 0.01);
     }
 }

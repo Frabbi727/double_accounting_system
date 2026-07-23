@@ -139,27 +139,21 @@ class ReportController extends Controller
 
     public function customerDue()
     {
-        $rows = Customer::orderBy('name')->get()
-            ->map(fn (Customer $c) => ['name' => $c->name, 'due' => $c->openingBalance()])
-            ->filter(fn ($r) => abs($r['due']) > 0.005)
-            ->values();
-
         return view('shop.report.party_due', [
             'title' => __('ui.report.customer_due'),
-            'rows' => $rows,
+            'party' => 'customer',
+            'direction' => 'received',
+            'rows' => $this->reports->partyDues('customer'),
         ]);
     }
 
     public function supplierDue()
     {
-        $rows = Supplier::orderBy('name')->get()
-            ->map(fn (Supplier $s) => ['name' => $s->name, 'due' => $s->openingBalance()])
-            ->filter(fn ($r) => abs($r['due']) > 0.005)
-            ->values();
-
         return view('shop.report.party_due', [
             'title' => __('ui.report.supplier_due'),
-            'rows' => $rows,
+            'party' => 'supplier',
+            'direction' => 'made',
+            'rows' => $this->reports->partyDues('supplier'),
         ]);
     }
 

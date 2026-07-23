@@ -26,6 +26,16 @@
         </form>
 
         @if ($statement)
+            @can('payment.manage')
+                <div class="mb-4 flex items-center justify-between bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-600">
+                        {{ $statement['record']->name }} — <span class="font-semibold">@taka($statement['closing'])</span>
+                    </div>
+                    <a href="{{ route('payments.create', ['direction' => $party === 'supplier' ? 'made' : 'received', 'party_id' => $selectedId]) }}"
+                       class="bg-gray-800 text-white rounded px-4 py-1.5 text-sm">{{ __('ui.report.settle') }}</a>
+                </div>
+            @endcan
+
             <div class="bg-white rounded-lg shadow overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-50 text-gray-500 text-left">

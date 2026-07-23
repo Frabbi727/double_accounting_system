@@ -12,5 +12,6 @@ return [
         'zero_revenue' => 'The sale total must be greater than zero.',
         'discount_exceeds' => 'The discount cannot exceed the gross total.',
         'paid_exceeds' => 'The paid amount cannot exceed the net amount due.',
+        'credit_needs_customer' => 'A credit sale (with an unpaid balance) must name a customer, otherwise the due belongs to nobody.',
     ],
 ];

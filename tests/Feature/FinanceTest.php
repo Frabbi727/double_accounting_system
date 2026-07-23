@@ -114,6 +114,54 @@ class FinanceTest extends TestCase
         $this->ledger()->assertLedgerBalanced();
     }
 
+    public function test_receipt_exceeding_customer_due_is_rejected(): void
+    {
+        $customer = app(CustomerService::class)->create([
+            'name' => 'করিম',
+            'opening_items' => [['amount' => 5000, 'original_date' => '2026-03-15']],
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        // Owes 5000 — trying to receive 6000 must fail (would create an advance).
+        app(PaymentService::class)->receiveFromCustomer($customer, [
+            'amount' => 6000, 'date' => '2026-08-06',
+        ]);
+    }
+
+    public function test_payment_exceeding_supplier_due_is_rejected(): void
+    {
+        $supplier = app(SupplierService::class)->create([
+            'name' => 'ABC',
+            'opening_items' => [['amount' => 4000, 'original_date' => '2026-06-10']],
+        ]);
+        $this->openCash(25000);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        app(PaymentService::class)->payToSupplier($supplier, [
+            'amount' => 4500, 'date' => '2026-08-06',
+        ]);
+    }
+
+    public function test_partial_payments_accumulate_and_cannot_overshoot_the_remainder(): void
+    {
+        $customer = app(CustomerService::class)->create([
+            'name' => 'করিম',
+            'opening_items' => [['amount' => 5000, 'original_date' => '2026-03-15']],
+        ]);
+        $payments = app(PaymentService::class);
+
+        // Two partial receipts leave 5000 − 2000 − 1500 = 1500 due.
+        $payments->receiveFromCustomer($customer, ['amount' => 2000, 'date' => '2026-08-06']);
+        $payments->receiveFromCustomer($customer, ['amount' => 1500, 'date' => '2026-08-07']);
+        $this->assertEqualsWithDelta(1500, $this->balance('1030'), 0.01);
+
+        // The next receipt is capped at the 1500 remainder, not the original 5000.
+        $this->expectException(\InvalidArgumentException::class);
+        $payments->receiveFromCustomer($customer, ['amount' => 2000, 'date' => '2026-08-08']);
+    }
+
     public function test_transfer_moves_money_between_accounts(): void
     {
         $this->openCash(25000);
