@@ -24,9 +24,16 @@ return [
         'receivable' => 'Receivable',
         'payable' => 'Payable',
         'month_profit' => "This Month's Profit",
+        'month_sales' => "This Month's Sales",
         'stock_value' => 'Stock Value',
         'opening_locked' => 'Opening is locked',
         'opening_not_locked' => 'Opening is not locked yet',
+        'quick_actions' => 'Quick Actions',
+        'low_stock' => 'Low Stock',
+        'low_stock_none' => 'No products below reorder level',
+        'recent_activity' => 'Recent Activity',
+        'reorder' => 'Reorder',
+        'in_stock' => 'In stock',
     ],
 
     'opening' => [
