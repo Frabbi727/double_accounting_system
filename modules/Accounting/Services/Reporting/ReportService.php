@@ -337,6 +337,91 @@ class ReportService
         ];
     }
 
+    /**
+     * Statement of account for one customer or supplier: the opening balance
+     * followed by every ledger movement that touches their control account
+     * (receivable 1030 / payable 2010), in date order, with a running balance.
+     *
+     * It is built straight from the ledger — invoices/bills (Sale/Purchase),
+     * returns (SaleReturn/PurchaseReturn) and receipts/payments (PaymentIn/
+     * PaymentOut) — so the closing balance always equals the party's slice of
+     * the control account. `charge` raises what is owed, `payment` lowers it;
+     * for a customer that is "owed to us", for a supplier "owed by us".
+     *
+     * Note: a sale/purchase settled in full on the same day posts no control
+     * line, so it does not appear here — it never changed the outstanding due.
+     *
+     * @param  'customer'|'supplier'  $party
+     * @return array{party:string, record:Customer|Supplier, opening:float, rows:array, total_charge:float, total_payment:float, closing:float}
+     */
+    public function partyStatement(string $party, int $id): array
+    {
+        $isCustomer = $party !== 'supplier';
+
+        /** @var Customer|Supplier $record */
+        $record = ($isCustomer ? Customer::class : Supplier::class)::findOrFail($id);
+
+        $controlId = Account::where('code', $isCustomer ? '1030' : '2010')->value('id');
+
+        // Documents (sales/purchases) whose ledger entries reference this party.
+        $docIds = DB::table($isCustomer ? 'sales' : 'purchases')
+            ->where($isCustomer ? 'customer_id' : 'supplier_id', $id)
+            ->pluck('id')->all();
+
+        $docTypes = $isCustomer ? ['Sale', 'SaleReturn'] : ['Purchase', 'PurchaseReturn'];
+        $paymentType = $isCustomer ? 'PaymentIn' : 'PaymentOut';
+
+        $lines = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('l.account_id', $controlId)
+            ->where(function ($q) use ($docTypes, $docIds, $paymentType, $id) {
+                $q->where(function ($w) use ($docTypes, $docIds) {
+                    $w->whereIn('e.reference_type', $docTypes);
+                    empty($docIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $docIds);
+                })->orWhere(function ($w) use ($paymentType, $id) {
+                    $w->where('e.reference_type', $paymentType)->where('e.reference_id', $id);
+                });
+            })
+            ->orderBy('e.date')->orderBy('e.id')
+            ->select(['e.date', 'e.description', 'l.debit', 'l.credit'])
+            ->get();
+
+        $opening = round($record->openingBalance(), 2);
+        $running = $opening;
+        $totalCharge = 0.0;
+        $totalPayment = 0.0;
+        $rows = [];
+
+        foreach ($lines as $line) {
+            // Customer control (AR, asset): a debit raises what they owe us.
+            // Supplier control (AP, liability): a credit raises what we owe them.
+            $charge = $isCustomer ? (float) $line->debit : (float) $line->credit;
+            $payment = $isCustomer ? (float) $line->credit : (float) $line->debit;
+
+            $running += $charge - $payment;
+            $totalCharge += $charge;
+            $totalPayment += $payment;
+
+            $rows[] = [
+                'date' => $line->date,
+                'description' => $line->description,
+                'charge' => round($charge, 2),
+                'payment' => round($payment, 2),
+                'balance' => round($running, 2),
+            ];
+        }
+
+        return [
+            'party' => $isCustomer ? 'customer' : 'supplier',
+            'record' => $record,
+            'opening' => $opening,
+            'rows' => $rows,
+            'total_charge' => round($totalCharge, 2),
+            'total_payment' => round($totalPayment, 2),
+            'closing' => round($running, 2),
+        ];
+    }
+
     // ------------------------------------------------------------------
 
     /**

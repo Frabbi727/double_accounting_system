@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (ক্রয় বিল প্রিন্ট সহ)
+শেষ আপডেট: 2026-07-23 (পার্টি বিবরণী সহ)
 
 ---
 
@@ -150,13 +150,21 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৮৪/৮৪ পাস।**
 
+## ✅ ধাপ ১৩ — পার্টি বিবরণী (Party Statement, FR-64, DONE, tested)
+
+`ReportService::partyStatement(party, id)` — এক কাস্টমার/সাপ্লায়ারের বিবরণী: opening ব্যালেন্স + control account (1030/2010)-এ ওই পার্টির প্রতিটা movement (Sale/Purchase, SaleReturn/PurchaseReturn, PaymentIn/PaymentOut) date-অনুসারে running balance-সহ। **সম্পূর্ণ ledger-derived** — reference_type + reference_id (payment→party id, invoice/return→doc id) দিয়ে টানা, তাই closing == control account-এর ওই পার্টির অংশ। `charge` বাকি বাড়ায়, `payment` কমায়। (একই দিনে পুরো পরিশোধিত বিক্রয়/ক্রয় control line তৈরি করে না → বিবরণীতে আসে না; বাকি কখনো বদলায়নি।)
+- `ReportController::partyStatement` — party toggle + dropdown; `resources/views/shop/report/party_statement.blade.php`; report হাব-এ কার্ড; `lang/*/ui.php`-এ party_statement/charge/payment/select_party key।
+- টেস্ট: `tests/Feature/PartyStatementTest.php` — **৩/৩ পাস**: closing == 1000 opening + 700 invoice − 300 receipt = 1400; closing == AR control (একমাত্র receivable holder); স্ক্রিন render + salesperson 403।
+
+**বর্তমানে পুরো suite: ৮৭/৮৭ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, party statement FR-64), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): incentive/rebate UI, Dashboard পূর্ণ, audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
 
-> ধাপ ১১-এ শেষ: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২-এ শেষ: ক্রয় বিল প্রিন্ট (FR-36)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
