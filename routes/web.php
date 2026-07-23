@@ -126,6 +126,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/customer-due', [ReportController::class, 'customerDue'])->name('customer_due');
         Route::get('/supplier-due', [ReportController::class, 'supplierDue'])->name('supplier_due');
         Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
+        Route::get('/party-statement', [ReportController::class, 'partyStatement'])->name('party_statement');
         Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
     });
 

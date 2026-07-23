@@ -92,6 +92,23 @@ class ReportController extends Controller
         ]);
     }
 
+    public function partyStatement(Request $request)
+    {
+        $party = $request->input('party') === 'supplier' ? 'supplier' : 'customer';
+        $parties = ($party === 'supplier' ? Supplier::query() : Customer::query())
+            ->orderBy('name')->get();
+
+        $id = (int) $request->input('id');
+        $statement = $id ? $this->reports->partyStatement($party, $id) : null;
+
+        return view('shop.report.party_statement', [
+            'party'      => $party,
+            'parties'    => $parties,
+            'selectedId' => $id,
+            'statement'  => $statement,
+        ]);
+    }
+
     public function stock()
     {
         return view('shop.report.stock', $this->reports->stock());
