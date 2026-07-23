@@ -55,6 +55,10 @@
                     @can('user.manage')
                         <a href="{{ route('users.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.user.title') }}</a>
                     @endcan
+
+                    @can('backup.manage')
+                        <a href="{{ route('backup.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.backup.title') }}</a>
+                    @endcan
                 </div>
             </div>
 

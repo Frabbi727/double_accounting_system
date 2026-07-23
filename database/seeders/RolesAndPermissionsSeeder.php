@@ -30,6 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'entry.delete',     // reverse/correct entries   (owner only)
         'user.manage',      // add/remove users          (owner only)
         'opening.manage',   // enter/lock opening balances (owner only)
+        'backup.manage',    // download data backups      (owner only)
     ];
 
     public const ROLE_PERMISSIONS = [

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\AccountController;
+use App\Http\Controllers\Shop\BackupController;
 use App\Http\Controllers\Shop\CustomerController;
 use App\Http\Controllers\Shop\DashboardController;
 use App\Http\Controllers\Shop\ExpenseController;
@@ -148,6 +149,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('can:master.manage')->group(function () {
         Route::get('/shop-profile', [ShopProfileController::class, 'edit'])->name('shop-profile.edit');
         Route::post('/shop-profile', [ShopProfileController::class, 'update'])->name('shop-profile.update');
+    });
+
+    // Data backup (owner only).
+    Route::middleware('can:backup.manage')->group(function () {
+        Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
+        Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
     });
 
     // User management (owner only).

@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (অডিট লগ সহ)
+শেষ আপডেট: 2026-07-23 (ডেটা ব্যাকআপ সহ)
 
 ---
 
@@ -201,13 +201,20 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ১০৪/১০৪ পাস।**
 
+## ✅ ধাপ ১৯ — ডেটা ব্যাকআপ (FR-72, DONE, tested)
+
+নতুন `backup.manage` permission (owner-only, seeder-এ যোগ)। `BackupController` — driver-agnostic JSON স্ন্যাপশট: সব business টেবিল (accounts, journal_entries/lines, stock_movements, sales/items, purchases/items, customers, suppliers, opening balances, settings, users + spatie role টেবিল) `streamDownload`-এ `backup-YYYY-MM-DD-His.json` হিসেবে ডাউনলোড। external dump tool লাগে না — Postgres/SQLite/MySQL সবখানে চলে। index পেজ + owner-gated nav লিঙ্ক; `lang/*/ui.php`-এ `backup` block। (রেস্টোর UI পরে; এটি off-site কপির জন্য।)
+- টেস্ট: `tests/Feature/BackupTest.php` — **৩/৩ পাস** (owner JSON ডাউনলোড: content-type + attachment + accounts টেবিল + 1010 কোড; পেজ render; non-owner ৪০৩)।
+
+**বর্তমানে পুরো suite: ১০৭/১০৭ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): Excel/PDF export (FR-69, dompdf), backup (FR-72)। + deferred PHPStan/larastan।
+**বাকি**: Excel/PDF export (FR-69, dompdf — composer package লাগবে)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)। ধাপ ১৮: অডিট লগ (FR-71)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)। ধাপ ১৮: অডিট লগ (FR-71)। ধাপ ১৯: ডেটা ব্যাকআপ (FR-72)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
