@@ -181,6 +181,17 @@ return [
         'incentive' => 'ইনসেনটিভ',
         'rebate' => 'রিবেট',
     ],
+    'shop_profile' => [
+        'title' => 'দোকানের তথ্য',
+        'name' => 'দোকানের নাম',
+        'address' => 'ঠিকানা',
+        'phone' => 'ফোন',
+        'logo' => 'লোগো',
+        'logo_hint' => 'PNG/JPG, সর্বোচ্চ ২ MB',
+        'remove_logo' => 'বর্তমান লোগো সরান',
+        'current_logo' => 'বর্তমান লোগো',
+        'save' => 'সংরক্ষণ',
+    ],
     'user' => [
         'title' => 'ব্যবহারকারী',
         'new' => 'নতুন ব্যবহারকারী',
