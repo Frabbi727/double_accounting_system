@@ -43,7 +43,7 @@
                     @endcan
 
                     @can('report.view')
-                        <a href="{{ route('reports.trial_balance') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav.reports') }}</a>
+                        <a href="{{ route('reports.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav.reports') }}</a>
                     @endcan
                 </div>
             </div>

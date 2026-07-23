@@ -80,6 +80,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     });
 
+    // Printing a purchase bill only needs purchase.create (no opening lock) — view only.
+    Route::middleware('can:purchase.create')->group(function () {
+        Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
+    });
+
     // Expenses (owner + accountant).
     Route::middleware(['can:expense.create', 'opening.locked'])->group(function () {
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
@@ -110,11 +115,18 @@ Route::middleware(['auth'])->group(function () {
 
     // Reports (owner + accountant). Cost/profit columns additionally gated in-view.
     Route::middleware('can:report.view')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/trial-balance', [ReportController::class, 'trialBalance'])->name('trial_balance');
+        Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->name('balance_sheet');
+        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss');
+        Route::get('/day-book', [ReportController::class, 'dayBook'])->name('day_book');
+        Route::get('/cash-book', [ReportController::class, 'cashBook'])->name('cash_book');
         Route::get('/stock', [ReportController::class, 'stock'])->name('stock');
+        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low_stock');
         Route::get('/customer-due', [ReportController::class, 'customerDue'])->name('customer_due');
         Route::get('/supplier-due', [ReportController::class, 'supplierDue'])->name('supplier_due');
-        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss');
+        Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
+        Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
