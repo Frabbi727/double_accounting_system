@@ -17,6 +17,7 @@ use App\Http\Controllers\Shop\SaleController;
 use App\Http\Controllers\Shop\SaleReturnController;
 use App\Http\Controllers\Shop\StockAdjustmentController;
 use App\Http\Controllers\Shop\SupplierController;
+use App\Http\Controllers\Shop\UserController;
 use App\Http\Controllers\Shop\TransferController;
 use Illuminate\Support\Facades\Route;
 
@@ -139,6 +140,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
         Route::get('/party-statement', [ReportController::class, 'partyStatement'])->name('party_statement');
         Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
+    });
+
+    // User management (owner only).
+    Route::middleware('can:user.manage')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

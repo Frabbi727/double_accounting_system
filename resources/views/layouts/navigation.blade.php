@@ -47,6 +47,10 @@
                     @can('report.view')
                         <a href="{{ route('reports.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav.reports') }}</a>
                     @endcan
+
+                    @can('user.manage')
+                        <a href="{{ route('users.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.user.title') }}</a>
+                    @endcan
                 </div>
             </div>
 
