@@ -16,6 +16,7 @@ use App\Http\Controllers\Shop\ReportController;
 use App\Http\Controllers\Shop\SaleController;
 use App\Http\Controllers\Shop\SaleReturnController;
 use App\Http\Controllers\Shop\StockAdjustmentController;
+use App\Http\Controllers\Shop\ShopProfileController;
 use App\Http\Controllers\Shop\SupplierController;
 use App\Http\Controllers\Shop\UserController;
 use App\Http\Controllers\Shop\TransferController;
@@ -140,6 +141,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
         Route::get('/party-statement', [ReportController::class, 'partyStatement'])->name('party_statement');
         Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
+    });
+
+    // Shop profile & logo (owner + accountant — master.manage).
+    Route::middleware('can:master.manage')->group(function () {
+        Route::get('/shop-profile', [ShopProfileController::class, 'edit'])->name('shop-profile.edit');
+        Route::post('/shop-profile', [ShopProfileController::class, 'update'])->name('shop-profile.update');
     });
 
     // User management (owner only).

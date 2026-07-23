@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (ব্যবহারকারী ব্যবস্থাপনা সহ)
+শেষ আপডেট: 2026-07-23 (দোকানের প্রোফাইল/লোগো সহ)
 
 ---
 
@@ -187,13 +187,20 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৯৭/৯৭ পাস।**
 
+## ✅ ধাপ ১৭ — দোকানের প্রোফাইল ও লোগো (FR-73, DONE, tested)
+
+নতুন key-value `settings` টেবিল (migration) + `App\Models\Setting` (get/put, cache) + `App\Support\ShopProfile` (name/address/phone/logoUrl; name-এ `config('shop.name')` fallback)। `ShopProfileController` (**`master.manage`** = owner+accountant) — edit/update, logo আপলোড `public` disk-এ (`logo/`), remove_logo চেকবক্স পুরোনো ফাইল মোছে। View `shop/settings/profile.blade.php`; nav-এ master.manage-gated লিঙ্ক; `lang/*/ui.php`-এ `shop_profile` block। বিক্রয় ইনভয়েস ও ক্রয় বিল প্রিন্টে এখন লোগো + নাম + ঠিকানা + ফোন দেখায় (`config('shop.name')` → `ShopProfile::name()`)। `php artisan storage:link` করা।
+- টেস্ট: `tests/Feature/ShopProfileTest.php` — **৪/৪ পাস** (profile+logo সংরক্ষণ ও public disk-এ ফাইল; remove_logo ফাইল মোছে; profile না থাকলে config fallback; salesperson ৪০৩)।
+
+**বর্তমানে পুরো suite: ১০১/১০১ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

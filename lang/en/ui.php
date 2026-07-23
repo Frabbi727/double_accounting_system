@@ -181,6 +181,17 @@ return [
         'incentive' => 'Incentives',
         'rebate' => 'Rebate',
     ],
+    'shop_profile' => [
+        'title' => 'Shop Profile',
+        'name' => 'Shop Name',
+        'address' => 'Address',
+        'phone' => 'Phone',
+        'logo' => 'Logo',
+        'logo_hint' => 'PNG/JPG, up to 2 MB',
+        'remove_logo' => 'Remove current logo',
+        'current_logo' => 'Current logo',
+        'save' => 'Save',
+    ],
     'user' => [
         'title' => 'Users',
         'new' => 'New User',

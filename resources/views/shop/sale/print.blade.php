@@ -42,8 +42,17 @@
 </head>
 <body>
     <div class="sheet">
-        <h1>{{ config('shop.name') }}</h1>
-        <p class="muted" style="text-align:center; margin:0 0 8px;">{{ __('ui.invoice.title') }}</p>
+        @if (\App\Support\ShopProfile::logoUrl())
+            <div style="text-align:center; margin-bottom:6px;"><img src="{{ \App\Support\ShopProfile::logoUrl() }}" alt="" style="max-height:64px; width:auto;"></div>
+        @endif
+        <h1>{{ \App\Support\ShopProfile::name() }}</h1>
+        @if (\App\Support\ShopProfile::address())
+            <p class="muted" style="text-align:center; margin:0;">{{ \App\Support\ShopProfile::address() }}</p>
+        @endif
+        @if (\App\Support\ShopProfile::phone())
+            <p class="muted" style="text-align:center; margin:0;">{{ __('ui.invoice.phone') }}: {{ \App\Support\ShopProfile::phone() }}</p>
+        @endif
+        <p class="muted" style="text-align:center; margin:6px 0 8px;">{{ __('ui.invoice.title') }}</p>
 
         <div class="meta">
             <div>
