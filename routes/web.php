@@ -141,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
         Route::get('/party-statement', [ReportController::class, 'partyStatement'])->name('party_statement');
         Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
+        Route::get('/audit-log', [ReportController::class, 'auditLog'])->name('audit_log');
     });
 
     // Shop profile & logo (owner + accountant — master.manage).

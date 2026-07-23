@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Customer;
+use Modules\Accounting\Models\JournalEntry;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Reporting\ReportService;
@@ -106,6 +107,28 @@ class ReportController extends Controller
             'parties'    => $parties,
             'selectedId' => $id,
             'statement'  => $statement,
+        ]);
+    }
+
+    public function auditLog(Request $request)
+    {
+        $type = $request->input('type');
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        $entries = JournalEntry::with(['creator', 'lines'])
+            ->when($type, fn ($q) => $q->where('reference_type', $type))
+            ->when($from, fn ($q) => $q->whereDate('date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('date', '<=', $to))
+            ->latest('created_at')->latest('id')
+            ->limit(200)->get();
+
+        return view('shop.report.audit_log', [
+            'entries' => $entries,
+            'types'   => JournalEntry::query()->distinct()->orderBy('reference_type')->pluck('reference_type'),
+            'type'    => $type,
+            'from'    => $from,
+            'to'      => $to,
         ]);
     }
 

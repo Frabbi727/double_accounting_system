@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (দোকানের প্রোফাইল/লোগো সহ)
+শেষ আপডেট: 2026-07-23 (অডিট লগ সহ)
 
 ---
 
@@ -194,13 +194,20 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ১০১/১০১ পাস।**
 
+## ✅ ধাপ ১৮ — অডিট লগ (FR-71, DONE, tested)
+
+`journal_entries` টেবিলই immutable audit trail (date, reference_type, created_by, created_at, reversal chain)। `ReportController::auditLog` — সব entry read-only তালিকা: রেকর্ডের সময় (created_at), ভাউচার তারিখ, ধরন, বিবরণ, **কে দিয়েছেন** (creator), পরিমাণ, অবস্থা (কার্যকর/রিভার্স করা/রিভার্সাল)। ফিল্টার: reference_type + তারিখ range (সর্বশেষ ২০০)। report.view-gated (reports গ্রুপে), report হাব-এ কার্ড। View `shop/report/audit_log.blade.php` (reference_type localized label map)। `lang/*/ui.php`-এ audit key।
+- টেস্ট: `tests/Feature/AuditLogTest.php` — **৩/৩ পাস** (creator নাম + status দেখায়; type ফিল্টার; salesperson ৪০৩)।
+
+**বর্তমানে পুরো suite: ১০৪/১০৪ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): Excel/PDF export (FR-69, dompdf), backup (FR-72)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)। ধাপ ১৮: অডিট লগ (FR-71)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

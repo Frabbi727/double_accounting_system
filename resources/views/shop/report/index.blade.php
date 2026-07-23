@@ -11,6 +11,7 @@
         ['reports.supplier_due',  __('ui.report.supplier_due')],
         ['reports.aging',         __('ui.report.aging')],
         ['reports.party_statement', __('ui.report.party_statement')],
+        ['reports.audit_log',       __('ui.report.audit_log')],
     ];
 @endphp
 <x-app-layout>
