@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Accounting\LedgerService;
@@ -20,9 +21,75 @@ class ReportController extends Controller
         private ReportService $reports,
     ) {}
 
+    public function index()
+    {
+        return view('shop.report.index');
+    }
+
     public function trialBalance()
     {
         return view('shop.report.trial_balance', $this->ledger->trialBalance());
+    }
+
+    public function balanceSheet()
+    {
+        return view('shop.report.balance_sheet', $this->reports->balanceSheet());
+    }
+
+    public function dayBook(Request $request)
+    {
+        $date = $request->input('date', now()->toDateString());
+
+        return view('shop.report.day_book', [
+            'date'    => $date,
+            'entries' => $this->reports->dayBook($date),
+        ]);
+    }
+
+    public function aging(Request $request)
+    {
+        $party = $request->input('party') === 'supplier' ? 'supplier' : 'customer';
+
+        return view('shop.report.aging', [
+            'party'  => $party,
+            'report' => $this->reports->aging($party),
+        ]);
+    }
+
+    public function cashBook(Request $request)
+    {
+        $from = $request->input('from', now()->startOfMonth()->toDateString());
+        $to = $request->input('to', now()->toDateString());
+
+        return view('shop.report.cash_book', [
+            'from'   => $from,
+            'to'     => $to,
+            'report' => $this->reports->cashBook('1010', $from, $to),
+        ]);
+    }
+
+    public function lowStock()
+    {
+        $rows = collect($this->reports->stock()['rows'])
+            ->filter(fn ($r) => $r['low_stock'])
+            ->values();
+
+        return view('shop.report.low_stock', ['rows' => $rows]);
+    }
+
+    public function productProfit(Request $request)
+    {
+        // Product profit reveals cost — double-guard beyond report.view.
+        abort_unless($request->user()->can('cost.view'), 403);
+
+        $from = $request->input('from', now()->startOfMonth()->toDateString());
+        $to = $request->input('to', now()->toDateString());
+
+        return view('shop.report.product_profit', [
+            'from'   => $from,
+            'to'     => $to,
+            'report' => $this->reports->productProfit($from, $to),
+        ]);
     }
 
     public function stock()

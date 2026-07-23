@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (বিক্রয় ইনভয়েস প্রিন্ট সহ)
+শেষ আপডেট: 2026-07-23 (রিপোর্ট স্ক্রিন সহ)
 
 ---
 
@@ -126,11 +126,29 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৭৫/৭৫ পাস।**
 
+## ✅ ধাপ ১১ — রিপোর্ট স্ক্রিন (DONE, tested)
+
+`app/Http/Controllers/Shop/ReportController.php` + `resources/views/shop/report/`-এ রিপোর্ট হাব ও নতুন স্ক্রিন, সব derived (কোনো cache/derived কলাম নেই), ধাপ ৮-এর প্যাটার্নে:
+- **রিপোর্ট হাব** (`index`) — role-gated কার্ড লিস্ট; nav-এর Reports লিঙ্ক এখন হাবে যায়।
+- **Balance Sheet** (`balanceSheet`) — asset = liability + equity যাচাই।
+- **Cash Book** (`cashBook`, FR-57) — যেকোনো cash/bank account-এর opening + প্রতিটা movement-এ running balance + closing; `ReportService::cashBook()` (নতুন)।
+- **Day Book** (`dayBook`) — তারিখ-ভিত্তিক সব এন্ট্রি।
+- **Aging** (`aging`) — customer/supplier bucket।
+- **Low-stock** (`lowStock`, FR-60) — reorder-এর নিচের পণ্য (`stock()` থেকে filter)।
+- **Product-wise profit** (`productProfit`, FR-65) — frozen sale-line cost থেকে; `cost.view`-এ **double-guard** (report.view-এর উপরে); `ReportService::productProfit()` (নতুন)।
+- `lang/bn|en/ui.php`-এ নতুন report key।
+
+- টেস্ট: `tests/Feature/ReportScreenTest.php` — **৬/৬ পাস**: সব স্ক্রিন owner-এ render; balance sheet ব্যালেন্স করে; cash-book closing == ledger balance; product profit == frozen cost (২০×৫৫=১১০০ rev, ২০×৪০=৮০০ cogs, ৩০০ profit); low-stock reorder-এর নিচে দেখায়; salesperson index/product_profit/balance_sheet-এ 403।
+
+**বর্তমানে পুরো suite: ৮১/৮১ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): ক্রয় বিল প্রিন্ট (FR-36), incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, Cash Book FR-57, Low-stock FR-60, party statement FR-64, product-wise profit FR-65, Balance Sheet, Aging), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): ক্রয় বিল প্রিন্ট (FR-36), incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, party statement FR-64), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+
+> ধাপ ১১-এ শেষ: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

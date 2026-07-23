@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Services\Reporting;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Enums\AccountType;
 use Modules\Accounting\Models\Account;
@@ -224,6 +225,115 @@ class ReportService
             'rows' => $rows,
             'buckets' => array_map(fn ($v) => round($v, 2), $buckets),
             'total' => round($total, 2),
+        ];
+    }
+
+    /**
+     * Cash book (or any cash/bank account) for a date range: opening balance,
+     * every movement with a running balance, and the closing balance.
+     *
+     * @return array{account: Account, opening: float, rows: array, closing: float}
+     */
+    public function cashBook(string $accountCode = '1010', ?string $from = null, ?string $to = null): array
+    {
+        $account = Account::where('code', $accountCode)->firstOrFail();
+
+        // Opening = balance up to the day before `from` (null → 0).
+        $opening = $from !== null
+            ? $this->ledger->balance($account, Carbon::parse($from)->subDay()->toDateString())
+            : 0.0;
+
+        $query = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('l.account_id', $account->id);
+
+        if ($from !== null) {
+            $query->whereDate('e.date', '>=', $from);
+        }
+        if ($to !== null) {
+            $query->whereDate('e.date', '<=', $to);
+        }
+
+        $lines = $query->orderBy('e.date')->orderBy('e.id')
+            ->select(['e.date', 'e.description', 'l.debit', 'l.credit'])
+            ->get();
+
+        $running = $opening;
+        $rows = [];
+        foreach ($lines as $line) {
+            // Cash/bank is an asset: debit increases (in), credit decreases (out).
+            $running += (float) $line->debit - (float) $line->credit;
+            $rows[] = [
+                'date'        => $line->date,
+                'description' => $line->description,
+                'in'          => round((float) $line->debit, 2),
+                'out'         => round((float) $line->credit, 2),
+                'balance'     => round($running, 2),
+            ];
+        }
+
+        return [
+            'account' => $account,
+            'opening' => round($opening, 2),
+            'rows'    => $rows,
+            'closing' => round($running, 2),
+        ];
+    }
+
+    /**
+     * Per-product profit for a date range, from the frozen sale-line costs
+     * (docs rule: historical profit never shifts). Requires cost visibility.
+     *
+     * @return array{rows: array, total_revenue: float, total_cogs: float, total_profit: float}
+     */
+    public function productProfit(?string $from = null, ?string $to = null): array
+    {
+        $query = DB::table('sale_items as si')
+            ->join('sales as s', 's.id', '=', 'si.sale_id')
+            ->join('products as p', 'p.id', '=', 'si.product_id');
+
+        if ($from !== null) {
+            $query->whereDate('s.date', '>=', $from);
+        }
+        if ($to !== null) {
+            $query->whereDate('s.date', '<=', $to);
+        }
+
+        $grouped = $query->selectRaw('
+                p.id as product_id,
+                p.name as name,
+                COALESCE(SUM(si.qty),0) as qty,
+                COALESCE(SUM(si.qty * si.unit_price - si.discount),0) as revenue,
+                COALESCE(SUM(si.qty * si.cost_price),0) as cogs
+            ')
+            ->groupBy('p.id', 'p.name')
+            ->orderBy('p.name')
+            ->get();
+
+        $rows = [];
+        $totalRevenue = 0.0;
+        $totalCogs = 0.0;
+
+        foreach ($grouped as $g) {
+            $revenue = round((float) $g->revenue, 2);
+            $cogs = round((float) $g->cogs, 2);
+            $totalRevenue += $revenue;
+            $totalCogs += $cogs;
+
+            $rows[] = [
+                'name'    => $g->name,
+                'qty'     => round((float) $g->qty, 3),
+                'revenue' => $revenue,
+                'cogs'    => $cogs,
+                'profit'  => round($revenue - $cogs, 2),
+            ];
+        }
+
+        return [
+            'rows'          => $rows,
+            'total_revenue' => round($totalRevenue, 2),
+            'total_cogs'    => round($totalCogs, 2),
+            'total_profit'  => round($totalRevenue - $totalCogs, 2),
         ];
     }
 

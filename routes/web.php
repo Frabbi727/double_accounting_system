@@ -110,11 +110,18 @@ Route::middleware(['auth'])->group(function () {
 
     // Reports (owner + accountant). Cost/profit columns additionally gated in-view.
     Route::middleware('can:report.view')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/trial-balance', [ReportController::class, 'trialBalance'])->name('trial_balance');
+        Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->name('balance_sheet');
+        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss');
+        Route::get('/day-book', [ReportController::class, 'dayBook'])->name('day_book');
+        Route::get('/cash-book', [ReportController::class, 'cashBook'])->name('cash_book');
         Route::get('/stock', [ReportController::class, 'stock'])->name('stock');
+        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low_stock');
         Route::get('/customer-due', [ReportController::class, 'customerDue'])->name('customer_due');
         Route::get('/supplier-due', [ReportController::class, 'supplierDue'])->name('supplier_due');
-        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('profit_loss');
+        Route::get('/aging', [ReportController::class, 'aging'])->name('aging');
+        Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
