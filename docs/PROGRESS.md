@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (পূর্ণ ড্যাশবোর্ড সহ)
+শেষ আপডেট: 2026-07-23 (ব্যবহারকারী ব্যবস্থাপনা সহ)
 
 ---
 
@@ -180,13 +180,20 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৯৩/৯৩ পাস।**
 
+## ✅ ধাপ ১৬ — ব্যবহারকারী ব্যবস্থাপনা (FR-70, DONE, tested)
+
+`UserController` (**owner only**, `can:user.manage`) — CRUD: index/create/store/edit/update/destroy। প্রতি ব্যবহারকারীর ঠিক একটি role (owner/accountant/salesperson, spatie `syncRoles`)। নিরাপত্তা: নিজের অ্যাকাউন্ট মোছা যায় না; শেষ owner-কে demote/delete করা যায় না। edit-এ পাসওয়ার্ড খালি রাখলে অপরিবর্তিত। Views `shop/user/{index,create,edit}`; nav-এ owner-gated লিঙ্ক; `lang/*/ui.php`-এ `user` block (role লেবেল সহ)।
+- টেস্ট: `tests/Feature/UserManagementTest.php` — **৪/৪ পাস** (create+role+password hash; role বদল + খালি পাসওয়ার্ড অপরিবর্তিত; self-delete ও last-owner demote reject; non-owner ৪০৩)।
+
+**বর্তমানে পুরো suite: ৯৭/৯৭ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
