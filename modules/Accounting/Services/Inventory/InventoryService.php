@@ -95,6 +95,42 @@ class InventoryService
         ]);
     }
 
+    /**
+     * Remove stock as an ADJUSTMENT (loss, damage, theft), valued at the
+     * current weighted-average cost. Same guard as stockOut, but the movement
+     * is typed 'adjustment' so it is not mistaken for a sale.
+     */
+    public function adjustOut(
+        Product $product,
+        float $qty,
+        string $referenceType,
+        ?int $referenceId,
+        string $date,
+    ): StockMovement {
+        if ($qty <= 0) {
+            throw new \InvalidArgumentException(__('accounting.errors.stock_out_qty'));
+        }
+
+        if (! config('shop.allow_negative_stock') && ! $this->checkAvailability($product, $qty)) {
+            throw new \RuntimeException(__('accounting.errors.insufficient_stock', [
+                'product' => $product->name,
+                'available' => (float) $product->currentStock(),
+                'requested' => $qty,
+            ]));
+        }
+
+        return StockMovement::create([
+            'product_id' => $product->id,
+            'type' => MovementType::Adjustment,
+            'qty' => -$qty,            // negative = out
+            'unit_cost' => $product->cost_price,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+            'date' => $date,
+            'created_by' => auth()->id(),
+        ]);
+    }
+
     public function checkAvailability(Product $product, float $qty): bool
     {
         return $product->currentStock() >= $qty;

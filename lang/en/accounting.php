@@ -52,4 +52,8 @@ return [
     'warnings' => [
         'sale_below_cost' => 'Warning: the sale price is lower than the cost price.',
     ],
+
+    'reports' => [
+        'current_profit' => 'Current period profit',
+    ],
 ];
