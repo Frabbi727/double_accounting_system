@@ -6,17 +6,34 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Master\SupplierService;
+use Modules\Accounting\Services\Reporting\ReportService;
 
 class SupplierController extends Controller
 {
     public function __construct(
         private SupplierService $suppliers,
+        private ReportService $reports,
     ) {}
 
     public function index()
     {
+        $suppliers = Supplier::orderBy('name')->get();
+
         return view('shop.supplier.index', [
-            'suppliers' => Supplier::orderBy('name')->get(),
+            'suppliers' => $suppliers,
+            // Live ledger due per supplier (0 once settled) — never the frozen opening.
+            'dues' => $suppliers->mapWithKeys(
+                fn (Supplier $s) => [$s->id => $this->reports->partyDue('supplier', $s->id)]
+            ),
+        ]);
+    }
+
+    /** Full history/statement for one supplier — reachable even at zero due. */
+    public function show(Supplier $supplier)
+    {
+        return view('shop.supplier.show', [
+            'record' => $supplier,
+            'statement' => $this->reports->partyStatement('supplier', $supplier->id),
         ]);
     }
 

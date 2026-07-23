@@ -80,6 +80,7 @@ return [
         'opening_due' => 'আগের বাকি',
         'opening_date' => 'বাকির তারিখ',
         'due' => 'বাকি',
+        'details' => 'কাস্টমার বিবরণ',
     ],
 
     'supplier' => [
@@ -91,6 +92,7 @@ return [
         'opening_due' => 'আগের বাকি',
         'opening_date' => 'বাকির তারিখ',
         'due' => 'বাকি',
+        'details' => 'সাপ্লায়ার বিবরণ',
     ],
 
     'account' => [

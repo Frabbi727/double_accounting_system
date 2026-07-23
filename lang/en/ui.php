@@ -80,6 +80,7 @@ return [
         'opening_due' => 'Opening Due',
         'opening_date' => 'Due Date',
         'due' => 'Due',
+        'details' => 'Customer Details',
     ],
 
     'supplier' => [
@@ -91,6 +92,7 @@ return [
         'opening_due' => 'Opening Due',
         'opening_date' => 'Due Date',
         'due' => 'Due',
+        'details' => 'Supplier Details',
     ],
 
     'account' => [

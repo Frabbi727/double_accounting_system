@@ -36,44 +36,7 @@
                 </div>
             @endcan
 
-            <div class="bg-white rounded-lg shadow overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-500 text-left">
-                        <tr>
-                            <th class="px-4 py-2">{{ __('ui.common.date') }}</th>
-                            <th class="px-4 py-2">{{ __('ui.report.description') }}</th>
-                            <th class="px-4 py-2 text-right">{{ __('ui.report.charge') }}</th>
-                            <th class="px-4 py-2 text-right">{{ __('ui.report.payment') }}</th>
-                            <th class="px-4 py-2 text-right">{{ __('ui.report.balance') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        <tr class="bg-gray-50/50">
-                            <td class="px-4 py-2" colspan="4">{{ __('ui.report.opening') }}</td>
-                            <td class="px-4 py-2 text-right font-medium">@taka($statement['opening'])</td>
-                        </tr>
-                        @forelse ($statement['rows'] as $row)
-                            <tr>
-                                <td class="px-4 py-2 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
-                                <td class="px-4 py-2">{{ $row['description'] }}</td>
-                                <td class="px-4 py-2 text-right">{{ $row['charge'] > 0 ? \App\Support\Money::taka($row['charge']) : '' }}</td>
-                                <td class="px-4 py-2 text-right">{{ $row['payment'] > 0 ? \App\Support\Money::taka($row['payment']) : '' }}</td>
-                                <td class="px-4 py-2 text-right">@taka($row['balance'])</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                    <tfoot class="bg-gray-50 font-semibold">
-                        <tr>
-                            <td class="px-4 py-2" colspan="2">{{ $statement['record']->name }} — {{ __('ui.report.closing') }}</td>
-                            <td class="px-4 py-2 text-right">@taka($statement['total_charge'])</td>
-                            <td class="px-4 py-2 text-right">@taka($statement['total_payment'])</td>
-                            <td class="px-4 py-2 text-right">@taka($statement['closing'])</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+            @include('shop._party_statement', ['linkable' => true])
         @endif
     </div>
 </x-app-layout>

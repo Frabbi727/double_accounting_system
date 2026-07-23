@@ -6,17 +6,34 @@ use App\Http\Controllers\Controller;
 use Modules\Accounting\Http\Requests\StoreCustomerRequest;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Services\Master\CustomerService;
+use Modules\Accounting\Services\Reporting\ReportService;
 
 class CustomerController extends Controller
 {
     public function __construct(
         private CustomerService $customers,
+        private ReportService $reports,
     ) {}
 
     public function index()
     {
+        $customers = Customer::orderBy('name')->get();
+
         return view('shop.customer.index', [
-            'customers' => Customer::orderBy('name')->get(),
+            'customers' => $customers,
+            // Live ledger due per customer (0 once settled) — never the frozen opening.
+            'dues' => $customers->mapWithKeys(
+                fn (Customer $c) => [$c->id => $this->reports->partyDue('customer', $c->id)]
+            ),
+        ]);
+    }
+
+    /** Full history/statement for one customer — reachable even at zero due. */
+    public function show(Customer $customer)
+    {
+        return view('shop.customer.show', [
+            'record' => $customer,
+            'statement' => $this->reports->partyStatement('customer', $customer->id),
         ]);
     }
 

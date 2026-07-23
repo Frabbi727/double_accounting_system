@@ -426,6 +426,8 @@ class ReportService
             $rows[] = [
                 'date' => $line->date,
                 'description' => $line->description,
+                'reference_type' => $line->reference_type,
+                'reference_id' => $line->reference_id,
                 'charge' => round($charge, 2),
                 'payment' => round($payment, 2),
                 'balance' => round($running, 2),
@@ -528,7 +530,7 @@ class ReportService
                 });
             })
             ->orderBy('e.date')->orderBy('e.id')
-            ->select(['e.date', 'e.description', 'l.debit', 'l.credit'])
+            ->select(['e.date', 'e.description', 'e.reference_type', 'e.reference_id', 'l.debit', 'l.credit'])
             ->get();
     }
 

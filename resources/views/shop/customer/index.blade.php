@@ -15,17 +15,23 @@
                         <th class="px-4 py-2">{{ __('ui.customer.name') }}</th>
                         <th class="px-4 py-2">{{ __('ui.customer.phone') }}</th>
                         <th class="px-4 py-2 text-right">{{ __('ui.customer.due') }}</th>
+                        <th class="px-4 py-2 text-right">{{ __('ui.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
                     @forelse ($customers as $c)
-                        <tr>
-                            <td class="px-4 py-2">{{ $c->name }}</td>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2">
+                                <a href="{{ route('customers.show', $c) }}" class="text-indigo-600 hover:underline">{{ $c->name }}</a>
+                            </td>
                             <td class="px-4 py-2">{{ $c->phone }}</td>
-                            <td class="px-4 py-2 text-right">@taka($c->openingBalance())</td>
+                            <td class="px-4 py-2 text-right">@taka($dues[$c->id] ?? 0)</td>
+                            <td class="px-4 py-2 text-right">
+                                <a href="{{ route('customers.show', $c) }}" class="text-sm text-indigo-600 hover:underline">{{ __('ui.report.details') }}</a>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
+                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

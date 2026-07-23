@@ -56,10 +56,12 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
+        Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
         Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
 
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create');
+        Route::get('/suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
         Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
 
         Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
