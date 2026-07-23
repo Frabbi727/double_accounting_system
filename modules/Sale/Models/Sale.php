@@ -44,10 +44,12 @@ class Sale extends Model
         return round((float) $this->items->sum(fn (SaleItem $i) => $i->lineRevenue()), 2);
     }
 
-    /** Net after discount. */
+    /** Net after discount (per-line discounts + whole-bill discount). */
     public function net(): float
     {
-        return round($this->gross() - (float) $this->discount, 2);
+        $lineDiscount = (float) $this->items->sum(fn (SaleItem $i) => (float) $i->discount);
+
+        return round($this->gross() - $lineDiscount - (float) $this->discount, 2);
     }
 
     /** Amount still owed by the customer (net − paid). */

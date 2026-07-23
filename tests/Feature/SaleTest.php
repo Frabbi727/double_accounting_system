@@ -135,6 +135,48 @@ class SaleTest extends TestCase
         $this->ledger()->assertLedgerBalanced();
     }
 
+    public function test_line_discount_is_reflected_in_net_and_matches_ledger(): void
+    {
+        $product = $this->productWithStock(100, 40, 55);
+
+        // Gross 550, per-line discount 50, no bill discount → net 500, fully paid.
+        $sale = app(SaleService::class)->create([
+            'date' => '2026-08-06',
+            'items' => [
+                ['product_id' => $product->id, 'qty' => 10, 'unit_price' => 55, 'discount' => 50],
+            ],
+            'paid_amount' => 500,
+        ]);
+
+        // Model net() must subtract the per-line discount (was a bug: only bill discount counted).
+        $this->assertEqualsWithDelta(500, $sale->net(), 0.01);
+        $this->assertEqualsWithDelta(0, $sale->due(), 0.01);
+
+        // Ledger agrees: gross revenue 550, discount 50 to 4020, cash 500.
+        $this->assertEqualsWithDelta(550, $this->balance('4010'), 0.01);
+        $this->assertEqualsWithDelta(-50, $this->balance('4020'), 0.01); // contra-revenue
+        $this->assertEqualsWithDelta(500, $this->balance('1010'), 0.01);
+        $this->ledger()->assertLedgerBalanced();
+    }
+
+    public function test_paid_amount_lands_in_the_chosen_account(): void
+    {
+        $product = $this->productWithStock(100, 40, 55);
+        $bank = Account::where('code', '1021')->first(); // seeded Bank Account
+
+        app(SaleService::class)->create([
+            'date' => '2026-08-06',
+            'items' => [['product_id' => $product->id, 'qty' => 10, 'unit_price' => 55]],
+            'paid_amount' => 550,
+            'payment_account_id' => $bank->id,
+        ]);
+
+        // Cash drawer (1010) untouched; the money went to the chosen bank account.
+        $this->assertEqualsWithDelta(0, $this->balance('1010'), 0.01);
+        $this->assertEqualsWithDelta(550, $this->balance('1021'), 0.01);
+        $this->ledger()->assertLedgerBalanced();
+    }
+
     public function test_sale_beyond_available_stock_is_rejected(): void
     {
         $product = $this->productWithStock(5, 40, 55);

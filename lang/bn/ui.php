@@ -118,6 +118,11 @@ return [
         'save' => 'বিক্রয় সংরক্ষণ',
         'gross' => 'মোট',
         'net' => 'নিট',
+        'deposit_to' => 'কোথায় জমা হবে',
+        'loss_warning' => 'সম্ভাব্য লস',
+        'below_cost' => 'কস্টের নিচে বিক্রয়',
+        'need_customer_for_credit' => 'বাকি বিক্রয়ের জন্য কাস্টমার নির্বাচন করুন',
+        'add_customer' => 'নতুন কাস্টমার',
     ],
 
     'purchase' => [

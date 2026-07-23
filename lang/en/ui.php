@@ -118,6 +118,11 @@ return [
         'save' => 'Save Sale',
         'gross' => 'Gross',
         'net' => 'Net',
+        'deposit_to' => 'Deposit To',
+        'loss_warning' => 'Potential loss',
+        'below_cost' => 'Below cost',
+        'need_customer_for_credit' => 'Select a customer for a credit (unpaid) sale',
+        'add_customer' => 'New Customer',
     ],
 
     'purchase' => [

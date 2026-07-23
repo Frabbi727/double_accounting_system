@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\Product;
 use Modules\Sale\Models\Sale;
@@ -38,9 +39,18 @@ class SaleController extends Controller
 
     public function create()
     {
+        $customers = Customer::orderBy('name')->get();
+
         return view('shop.sale.create', [
             'products' => Product::where('is_active', true)->orderBy('name')->get(),
-            'customers' => Customer::orderBy('name')->get(),
+            'customers' => $customers,
+            // Cash/bank accounts the paid amount can land in ("cash drawer").
+            'accounts' => Account::cashOrBank()->orderBy('code')->get(),
+            'defaultAccountId' => Account::code('1010')->value('id'),
+            // id => saved default discount %, to pre-fill the bill discount on select.
+            'customerDiscounts' => $customers->mapWithKeys(
+                fn (Customer $c) => [$c->id => (float) $c->default_discount_percent]
+            ),
         ]);
     }
 
@@ -49,6 +59,7 @@ class SaleController extends Controller
         $data = $request->validate([
             'customer_id' => ['nullable', 'exists:customers,id'],
             'date' => ['required', 'date'],
+            'payment_account_id' => ['nullable', 'exists:accounts,id'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'paid_amount' => ['nullable', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
