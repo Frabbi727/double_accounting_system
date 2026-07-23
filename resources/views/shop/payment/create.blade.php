@@ -14,15 +14,25 @@
                   direction: @js($dir),
                   partyId: @js((string) $partyId),
                   amount: @js((string) $amtInit),
+                  accountId: @js((string) ($paymentAccounts->first()->id ?? '')),
                   customerDues: @js($customerDues),
                   supplierDues: @js($supplierDues),
+                  accountBalances: @js($paymentAccountBalances),
                   get due() {
                       const map = this.direction === 'made' ? this.supplierDues : this.customerDues;
                       const d = map[this.partyId];
                       return d === undefined || d === null ? null : Number(d);
                   },
                   get over() { return this.due !== null && Number(this.amount) > this.due + 0.005; },
-                  get invalid() { return !this.partyId || !(Number(this.amount) > 0) || this.due === null || this.over; },
+                  get sourceBalance() {
+                      const b = this.accountBalances[this.accountId];
+                      return b === undefined || b === null ? null : Number(b);
+                  },
+                  get insufficient() {
+                      return this.direction === 'made' && this.sourceBalance !== null
+                          && Number(this.amount) > this.sourceBalance + 0.005;
+                  },
+                  get invalid() { return !this.partyId || !(Number(this.amount) > 0) || this.due === null || this.over || this.insufficient; },
                   fmt(n) { return '৳ ' + Number(n).toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
               }">
             @csrf
@@ -66,9 +76,11 @@
                     <label class="text-sm text-gray-600">{{ __('ui.payment.amount') }}</label>
                     <input name="amount" type="number" step="0.01" min="0" required class="{{ $input }}"
                            x-model="amount" :max="due ?? ''"
-                           :class="over ? 'border-red-400 ring-red-300' : ''">
+                           :class="(over || insufficient) ? 'border-red-400 ring-red-300' : ''">
                     <p class="mt-1 text-xs text-red-600" x-show="over"
                        x-text="'{{ __('ui.payment.over_due') }}'"></p>
+                    <p class="mt-1 text-xs text-red-600" x-show="insufficient"
+                       x-text="'{{ __('ui.finance.insufficient') }}'"></p>
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.common.date') }}</label>
@@ -76,11 +88,14 @@
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.payment.account') }}</label>
-                    <select name="payment_account_id" class="{{ $input }}">
+                    <select name="payment_account_id" x-model="accountId" class="{{ $input }}">
                         @foreach ($paymentAccounts as $a)
                             <option value="{{ $a->id }}">{{ $a->code }} — {{ $a->name }}</option>
                         @endforeach
                     </select>
+                    <p class="mt-1 text-xs text-gray-500" x-show="direction === 'made' && sourceBalance !== null">
+                        {{ __('ui.finance.available') }}: <span class="font-semibold" x-text="fmt(sourceBalance)"></span>
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.expense.note') }}</label>

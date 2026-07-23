@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Master\AccountService;
+use Modules\Accounting\Services\Reporting\ReportService;
 
 class AccountController extends Controller
 {
     public function __construct(
         private AccountService $accounts,
         private LedgerService $ledger,
+        private ReportService $reports,
     ) {}
 
     public function index()
@@ -25,6 +27,22 @@ class AccountController extends Controller
                 'model' => $a,
                 'balance' => $this->ledger->balance($a),
             ]),
+        ]);
+    }
+
+    /**
+     * Full activity statement for one account — how money came in, where it
+     * went, to whom, and the running balance — so account history is auditable.
+     */
+    public function statement(Request $request, Account $account)
+    {
+        $from = $request->input('from', now()->startOfMonth()->toDateString());
+        $to = $request->input('to', now()->toDateString());
+
+        return view('shop.account.statement', [
+            'from'   => $from,
+            'to'     => $to,
+            'report' => $this->reports->accountStatement($account, $from, $to),
         ]);
     }
 

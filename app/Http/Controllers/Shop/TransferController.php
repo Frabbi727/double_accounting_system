@@ -6,18 +6,26 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
+use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Finance\Services\TransferService;
 
 class TransferController extends Controller
 {
     public function __construct(
         private TransferService $transfers,
+        private LedgerService $ledger,
     ) {}
 
     public function create()
     {
+        $accounts = Account::whereIn('subtype', ['cash', 'bank', 'loan'])->orderBy('code')->get();
+
         return view('shop.transfer.create', [
-            'accounts' => Account::whereIn('subtype', ['cash', 'bank', 'loan'])->orderBy('code')->get(),
+            'accounts' => $accounts,
+            // Only cash/bank sources have a spendable cap; loan accounts → null (no block).
+            'accountBalances' => $accounts->mapWithKeys(fn ($a) => [
+                $a->id => in_array($a->subtype, ['cash', 'bank'], true) ? $this->ledger->balance($a) : null,
+            ]),
         ]);
     }
 

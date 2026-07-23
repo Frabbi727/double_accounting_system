@@ -15,17 +15,25 @@
                         <th class="px-4 py-2">{{ __('ui.report.code') }}</th>
                         <th class="px-4 py-2">{{ __('ui.account.name') }}</th>
                         <th class="px-4 py-2 text-right">{{ __('ui.account.balance') }}</th>
+                        <th class="px-4 py-2 text-right">{{ __('ui.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
                     @forelse ($accounts as $row)
-                        <tr>
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-2">{{ $row['model']->code }}</td>
-                            <td class="px-4 py-2">{{ $row['model']->name }}</td>
+                            <td class="px-4 py-2">
+                                <a href="{{ route('accounts.statement', $row['model']) }}" class="text-indigo-600 hover:underline">
+                                    {{ $row['model']->name }}
+                                </a>
+                            </td>
                             <td class="px-4 py-2 text-right">@taka($row['balance'])</td>
+                            <td class="px-4 py-2 text-right">
+                                <a href="{{ route('accounts.statement', $row['model']) }}" class="text-sm text-indigo-600 hover:underline">{{ __('ui.report.view') }}</a>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
+                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

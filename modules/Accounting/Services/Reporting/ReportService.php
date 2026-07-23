@@ -585,6 +585,97 @@ class ReportService
             : round($credit - $debit, 2);
     }
 
+    /**
+     * Full activity statement for ONE account: opening balance followed by
+     * every ledger movement that touched it, in date order, with a running
+     * balance — so the owner can see how money entered, where it went, to whom
+     * and how much. Works for any account (cash, bank, loan, control, income,
+     * expense), direction-aware so "in" always means "made the balance grow".
+     *
+     * Each row carries a human-readable `type` label (Sale, Purchase, Payment
+     * to supplier, Expense, Transfer, Rebate, Incentive, …) derived from the
+     * journal entry's reference_type, plus the entry's own description (which
+     * already names the counterparty). Built straight from the immutable ledger,
+     * so `closing` always equals LedgerService::balance() for the same range.
+     *
+     * @return array{account:Account, opening:float, rows:array, closing:float, total_in:float, total_out:float}
+     */
+    public function accountStatement(Account $account, ?string $from = null, ?string $to = null): array
+    {
+        $opening = $from !== null
+            ? $this->ledger->balance($account, Carbon::parse($from)->subDay()->toDateString())
+            : 0.0;
+
+        $query = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('l.account_id', $account->id);
+
+        if ($from !== null) {
+            $query->whereDate('e.date', '>=', $from);
+        }
+        if ($to !== null) {
+            $query->whereDate('e.date', '<=', $to);
+        }
+
+        $lines = $query->orderBy('e.date')->orderBy('e.id')
+            ->select(['e.date', 'e.id as entry_id', 'e.reference_type', 'e.reference_id', 'e.description', 'l.debit', 'l.credit'])
+            ->get();
+
+        // For an asset/expense account a debit grows the balance; for a
+        // liability/equity/income account a credit does. "in" = growth.
+        $debitIsIn = $account->type->increasesWithDebit();
+
+        $running = $opening;
+        $totalIn = 0.0;
+        $totalOut = 0.0;
+        $rows = [];
+
+        foreach ($lines as $line) {
+            $debit = (float) $line->debit;
+            $credit = (float) $line->credit;
+
+            $in = $debitIsIn ? $debit : $credit;
+            $out = $debitIsIn ? $credit : $debit;
+
+            $running += $in - $out;
+            $totalIn += $in;
+            $totalOut += $out;
+
+            $rows[] = [
+                'date'           => $line->date,
+                'entry_id'       => $line->entry_id,
+                'reference_type' => $line->reference_type,
+                'type_label'     => $this->refTypeLabel($line->reference_type),
+                'description'    => $line->description,
+                'in'             => round($in, 2),
+                'out'            => round($out, 2),
+                'balance'        => round($running, 2),
+            ];
+        }
+
+        return [
+            'account'   => $account,
+            'opening'   => round($opening, 2),
+            'rows'      => $rows,
+            'closing'   => round($running, 2),
+            'total_in'  => round($totalIn, 2),
+            'total_out' => round($totalOut, 2),
+        ];
+    }
+
+    /**
+     * Localized, human-readable label for a ledger reference_type
+     * (Sale, PaymentOut, Rebate, IncentiveIn, …). Falls back to the raw type
+     * for anything not yet translated, so nothing ever renders blank.
+     */
+    public function refTypeLabel(string $type): string
+    {
+        $key = "ui.ref_type.$type";
+        $label = __($key);
+
+        return $label === $key ? $type : $label;
+    }
+
     private function sumRows(array $rows): float
     {
         return round(array_sum(array_column($rows, 'balance')), 2);

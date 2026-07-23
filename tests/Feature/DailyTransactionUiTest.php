@@ -48,9 +48,22 @@ class DailyTransactionUiTest extends TestCase
         return app(LedgerService::class)->balance(Account::where('code', $code)->first());
     }
 
+    /** Open the seeded cash account (1010) so outflows have funds to draw on. */
+    private function openCash(float $amount): void
+    {
+        $cash = Account::where('code', '1010')->first();
+        app(OpeningEntryService::class)->post(
+            account: $cash,
+            amount: $amount,
+            date: config('shop.cutoff_date'),
+            source: $cash,
+        );
+    }
+
     public function test_accountant_records_expense_and_books_balance(): void
     {
         $acc = $this->userWithRole('accountant');
+        $this->openCash(25000);   // fund the cash account before locking the opening
         $this->lockOpening();
 
         $this->actingAs($acc)->post('/expenses', [
@@ -60,7 +73,7 @@ class DailyTransactionUiTest extends TestCase
         ])->assertRedirect();
 
         $this->assertEqualsWithDelta(3000, $this->balance('5020'), 0.01);
-        $this->assertEqualsWithDelta(-3000, $this->balance('1010'), 0.01); // cash went negative (no opening cash)
+        $this->assertEqualsWithDelta(22000, $this->balance('1010'), 0.01); // paid out of available cash
         app(LedgerService::class)->assertLedgerBalanced();
     }
 

@@ -8,6 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\Supplier;
+use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Modules\Finance\Services\PaymentService;
 
@@ -16,6 +17,7 @@ class PaymentController extends Controller
     public function __construct(
         private PaymentService $payments,
         private ReportService $reports,
+        private LedgerService $ledger,
     ) {}
 
     public function create(Request $request)
@@ -33,10 +35,15 @@ class PaymentController extends Controller
             ? ($direction === 'made' ? $supplierDues : $customerDues)->get($partyId)
             : null;
 
+        $paymentAccounts = Account::cashOrBank()->orderBy('code')->get();
+
         return view('shop.payment.create', [
             'customers' => Customer::orderBy('name')->get(),
             'suppliers' => Supplier::orderBy('name')->get(),
-            'paymentAccounts' => Account::cashOrBank()->orderBy('code')->get(),
+            'paymentAccounts' => $paymentAccounts,
+            'paymentAccountBalances' => $paymentAccounts->mapWithKeys(
+                fn ($a) => [$a->id => $this->ledger->balance($a)]
+            ),
             'customerDues' => $customerDues,
             'supplierDues' => $supplierDues,
             'prefillDirection' => $direction,

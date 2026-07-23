@@ -21,6 +21,7 @@ class ExpenseService
 
     public function __construct(
         private LedgerService $ledger,
+        private AccountBalanceGuard $balanceGuard,
     ) {}
 
     /**
@@ -42,6 +43,7 @@ class ExpenseService
 
         $payment = $this->paymentAccount($data);
         $date = $data['date'] ?? now()->toDateString();
+        $this->balanceGuard->assertSufficient($payment, $amount, $date);
 
         return $this->ledger->post(
             date: $date,

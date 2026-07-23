@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
         Route::get('/accounts/create', [AccountController::class, 'create'])->name('accounts.create');
+        Route::get('/accounts/{account}/statement', [AccountController::class, 'statement'])->name('accounts.statement');
         Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
     });
 
@@ -148,6 +149,7 @@ Route::middleware(['auth'])->group(function () {
         // Export (CSV / PDF) — ?format=csv|pdf.
         Route::get('/export/trial-balance', [ExportController::class, 'trialBalance'])->name('export.trial_balance');
         Route::get('/export/stock', [ExportController::class, 'stock'])->name('export.stock');
+        Route::get('/export/account-statement/{account}', [ExportController::class, 'accountStatement'])->name('export.account_statement');
     });
 
     // Shop profile & logo (owner + accountant — master.manage).

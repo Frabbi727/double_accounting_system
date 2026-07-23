@@ -194,6 +194,11 @@ return [
         'profit' => 'Profit',
         'reorder' => 'Reorder',
         'go' => 'Show',
+        'account_statement' => 'Account Statement',
+        'type' => 'Type',
+        'total_in' => 'Total In',
+        'total_out' => 'Total Out',
+        'view' => 'View',
     ],
 
     'nav_more' => [
@@ -300,6 +305,32 @@ return [
         'to' => 'To Account',
         'amount' => 'Amount',
         'save' => 'Save Transfer',
+    ],
+
+    'finance' => [
+        'available' => 'Available',
+        'insufficient' => 'Not enough balance in this account.',
+    ],
+
+    // Human-readable label for each kind of ledger movement, shown in the
+    // account statement so the owner understands what every line means.
+    'ref_type' => [
+        'Opening'          => 'Opening balance',
+        'OpeningReversal'  => 'Opening correction',
+        'Sale'             => 'Sale',
+        'SaleCOGS'         => 'Cost of sale',
+        'SaleReturn'       => 'Sale return',
+        'SaleReturnCOGS'   => 'Sale return (cost)',
+        'Purchase'         => 'Purchase',
+        'PurchaseReturn'   => 'Purchase return',
+        'PaymentIn'        => 'Received from customer',
+        'PaymentOut'       => 'Paid to supplier',
+        'Expense'          => 'Expense',
+        'Transfer'         => 'Account transfer',
+        'Rebate'           => 'Rebate',
+        'IncentiveIn'      => 'Incentive received',
+        'IncentiveOut'     => 'Incentive paid',
+        'StockLoss'        => 'Stock loss/damage',
     ],
 
     'return' => [

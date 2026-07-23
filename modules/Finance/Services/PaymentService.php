@@ -32,6 +32,7 @@ class PaymentService
     public function __construct(
         private LedgerService $ledger,
         private ReportService $reports,
+        private AccountBalanceGuard $balanceGuard,
     ) {}
 
     /**
@@ -65,6 +66,7 @@ class PaymentService
         $this->guardAgainstOverpayment('supplier', $supplier->id, $amount);
         $account = $this->paymentAccount($data);
         $date = $data['date'] ?? now()->toDateString();
+        $this->balanceGuard->assertSufficient($account, $amount, $date);
 
         return $this->ledger->post(
             date: $date,

@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\JournalEntry;
+use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Finance\Services\ExpenseService;
 
 class ExpenseController extends Controller
 {
     public function __construct(
         private ExpenseService $expenses,
+        private LedgerService $ledger,
     ) {}
 
     public function index()
@@ -25,9 +27,14 @@ class ExpenseController extends Controller
 
     public function create()
     {
+        $paymentAccounts = Account::cashOrBank()->orderBy('code')->get();
+
         return view('shop.expense.create', [
             'expenseAccounts' => Account::where('type', 'expense')->orderBy('code')->get(),
-            'paymentAccounts' => Account::cashOrBank()->orderBy('code')->get(),
+            'paymentAccounts' => $paymentAccounts,
+            'paymentAccountBalances' => $paymentAccounts->mapWithKeys(
+                fn ($a) => [$a->id => $this->ledger->balance($a)]
+            ),
         ]);
     }
 

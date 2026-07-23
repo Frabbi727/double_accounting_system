@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Support\Money;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -47,6 +48,38 @@ class ExportController extends Controller
         return $this->export($request, __('ui.report.stock'), 'stock', [
             __('ui.common.name'), __('ui.purchase.qty'), __('ui.report.reorder'),
             __('ui.report.value'), __('ui.report.total'),
+        ], $rows);
+    }
+
+    public function accountStatement(Request $request, Account $account)
+    {
+        $from = $request->input('from', now()->startOfMonth()->toDateString());
+        $to = $request->input('to', now()->toDateString());
+
+        $data = $this->reports->accountStatement($account, $from, $to);
+
+        // Opening row first, then every movement — mirrors the on-screen table.
+        $rows = [[
+            \Carbon\Carbon::parse($from)->format('d/m/Y'), '', __('ui.report.opening'),
+            '', '', Money::taka($data['opening']),
+        ]];
+        foreach ($data['rows'] as $r) {
+            $rows[] = [
+                \Carbon\Carbon::parse($r['date'])->format('d/m/Y'),
+                $r['type_label'],
+                $r['description'],
+                $r['in'] > 0 ? Money::taka($r['in']) : '',
+                $r['out'] > 0 ? Money::taka($r['out']) : '',
+                Money::taka($r['balance']),
+            ];
+        }
+        $rows[] = ['', '', __('ui.report.closing'), '', '', Money::taka($data['closing'])];
+
+        $title = __('ui.report.account_statement').' — '.$account->code.' '.$account->name;
+
+        return $this->export($request, $title, 'account-statement-'.$account->code, [
+            __('ui.common.date'), __('ui.report.type'), __('ui.report.description'),
+            __('ui.report.in'), __('ui.report.out'), __('ui.report.balance'),
         ], $rows);
     }
 

@@ -190,4 +190,82 @@ class FinanceTest extends TestCase
             data: ['amount' => 1000],
         );
     }
+
+    // ------------------------------------------------------------------
+    // Insufficient-balance guard: you cannot spend money an account lacks.
+    // ------------------------------------------------------------------
+
+    public function test_supplier_payment_exceeding_account_balance_is_rejected(): void
+    {
+        $supplier = app(SupplierService::class)->create([
+            'name' => 'ABC',
+            'opening_items' => [['amount' => 5000, 'original_date' => '2026-06-10']],
+        ]);
+        $this->openCash(1000);   // only 1000 in hand
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        // Well within the 5000 due, but the cash account only holds 1000.
+        app(PaymentService::class)->payToSupplier($supplier, [
+            'amount' => 2000, 'date' => '2026-08-06',
+        ]);
+    }
+
+    public function test_supplier_payment_within_account_balance_succeeds(): void
+    {
+        $supplier = app(SupplierService::class)->create([
+            'name' => 'ABC',
+            'opening_items' => [['amount' => 5000, 'original_date' => '2026-06-10']],
+        ]);
+        $this->openCash(3000);
+
+        app(PaymentService::class)->payToSupplier($supplier, [
+            'amount' => 2000, 'date' => '2026-08-06',
+        ]);
+
+        $this->assertEqualsWithDelta(1000, $this->balance('1010'), 0.01);   // cash down
+        $this->assertEqualsWithDelta(3000, $this->balance('2010'), 0.01);   // AP down
+        $this->ledger()->assertLedgerBalanced();
+    }
+
+    public function test_expense_exceeding_account_balance_is_rejected(): void
+    {
+        $this->openCash(1000);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        app(ExpenseService::class)->create([
+            'expense_code' => '5020',   // shop rent
+            'amount' => 3000,
+            'date' => '2026-08-06',
+        ]);
+    }
+
+    public function test_transfer_exceeding_source_balance_is_rejected(): void
+    {
+        $this->openCash(1000);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '1010')->first(),
+            to: Account::where('code', '1021')->first(),
+            data: ['amount' => 5000, 'date' => '2026-08-06'],
+        );
+    }
+
+    public function test_transfer_from_loan_account_is_not_balance_guarded(): void
+    {
+        // A loan (liability) source has no spendable cap — drawing on it raises
+        // the liability, so the guard must let it through even from zero.
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '2020')->first(),   // Bank Loan
+            to: Account::where('code', '1010')->first(),     // Cash
+            data: ['amount' => 5000, 'date' => '2026-08-06'],
+        );
+
+        $this->assertEqualsWithDelta(5000, $this->balance('1010'), 0.01);   // cash up
+        $this->assertEqualsWithDelta(5000, $this->balance('2020'), 0.01);   // loan up
+        $this->ledger()->assertLedgerBalanced();
+    }
 }

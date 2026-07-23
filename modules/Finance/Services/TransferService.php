@@ -16,6 +16,7 @@ class TransferService
 {
     public function __construct(
         private LedgerService $ledger,
+        private AccountBalanceGuard $balanceGuard,
     ) {}
 
     /**
@@ -33,6 +34,7 @@ class TransferService
         }
 
         $date = $data['date'] ?? now()->toDateString();
+        $this->balanceGuard->assertSufficient($from, $amount, $date);
 
         return $this->ledger->post(
             date: $date,
