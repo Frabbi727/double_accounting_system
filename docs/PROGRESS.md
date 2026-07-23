@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (ডেটা ব্যাকআপ সহ)
+শেষ আপডেট: 2026-07-23 (Excel/PDF এক্সপোর্ট সহ — সব FR সম্পন্ন)
 
 ---
 
@@ -208,13 +208,20 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ১০৭/১০৭ পাস।**
 
+## ✅ ধাপ ২০ — Excel/PDF এক্সপোর্ট (FR-69, DONE, tested)
+
+`barryvdh/laravel-dompdf` যোগ। `ExportController` — যেকোনো রিপোর্টকে title + header + rows-এ রূপ দিয়ে shared exporter-এ পাঠায়: **CSV** (UTF-8 BOM সহ, Excel-এ বাংলা ঠিকভাবে খোলে) বা **PDF** (dompdf, `shop/export/table.blade.php`)। বাংলা PDF-এর জন্য Noto Sans Bengali (`resources/fonts/`) `@font-face`-এ embed; `config/dompdf.php` publish (chroot=base_path)। আপাতত Trial Balance ও Stock রিপোর্টে export বোতাম (csv+pdf); প্যাটার্ন কয়েক লাইনে বাকিগুলোতে extend হয়। report.view-gated। `?format=csv|pdf` (default csv)। `storage/fonts` gitignored (dompdf runtime cache)।
+- টেস্ট: `tests/Feature/ReportExportTest.php` — **৪/৪ পাস** (trial-balance CSV: content-type + attachment + 1010; stock PDF: `%PDF-` magic bytes; default=csv; salesperson ৪০৩)।
+
+**বর্তমানে পুরো suite: ১১১/১১১ পাস।**
+
 ---
 
-## ⏭️ পরের ধাপ (এখনো বাকি)
+## 🎉 সব ফাংশনাল রিকোয়ারমেন্ট সম্পন্ন
 
-**বাকি**: Excel/PDF export (FR-69, dompdf — composer package লাগবে)। + deferred PHPStan/larastan।
+Backend build order ১-৭ ও সব UI/রিপোর্ট/অ্যাডমিন স্ক্রিন হয়ে গেছে (ধাপ ১-২০)। **শুধু deferred: PHPStan/larastan cleanup** (কাজ করা কোড ভাঙে না)।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)। ধাপ ১৫: পূর্ণ ড্যাশবোর্ড। ধাপ ১৬: ব্যবহারকারী ব্যবস্থাপনা (FR-70)। ধাপ ১৭: দোকানের প্রোফাইল/লোগো (FR-73)। ধাপ ১৮: অডিট লগ (FR-71)। ধাপ ১৯: ডেটা ব্যাকআপ (FR-72)।
+> ধাপ ১১-২০: Balance Sheet/Cash Book/Low-stock/product-profit/Aging/Day Book → ক্রয় বিল প্রিন্ট → পার্টি বিবরণী → ইনসেনটিভ/রিবেট → পূর্ণ ড্যাশবোর্ড → ব্যবহারকারী ব্যবস্থাপনা → দোকান প্রোফাইল/লোগো → অডিট লগ → ব্যাকআপ → Excel/PDF এক্সপোর্ট।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

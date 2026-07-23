@@ -159,6 +159,8 @@ return [
         'audit_live' => 'কার্যকর',
         'audit_reversed' => 'রিভার্স করা',
         'audit_reversal' => 'রিভার্সাল',
+        'export_csv' => 'এক্সেল (CSV)',
+        'export_pdf' => 'PDF',
         'assets' => 'সম্পদ',
         'liabilities' => 'দায়',
         'equity' => 'পুঁজি',

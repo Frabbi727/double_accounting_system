@@ -6,6 +6,7 @@ use App\Http\Controllers\Shop\BackupController;
 use App\Http\Controllers\Shop\CustomerController;
 use App\Http\Controllers\Shop\DashboardController;
 use App\Http\Controllers\Shop\ExpenseController;
+use App\Http\Controllers\Shop\ExportController;
 use App\Http\Controllers\Shop\IncentiveController;
 use App\Http\Controllers\Shop\OpeningController;
 use App\Http\Controllers\Shop\PaymentController;
@@ -143,6 +144,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/party-statement', [ReportController::class, 'partyStatement'])->name('party_statement');
         Route::get('/product-profit', [ReportController::class, 'productProfit'])->name('product_profit');
         Route::get('/audit-log', [ReportController::class, 'auditLog'])->name('audit_log');
+
+        // Export (CSV / PDF) — ?format=csv|pdf.
+        Route::get('/export/trial-balance', [ExportController::class, 'trialBalance'])->name('export.trial_balance');
+        Route::get('/export/stock', [ExportController::class, 'stock'])->name('export.stock');
     });
 
     // Shop profile & logo (owner + accountant — master.manage).
