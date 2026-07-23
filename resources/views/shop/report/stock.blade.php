@@ -1,6 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">{{ __('ui.report.stock') }}</h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800">{{ __('ui.report.stock') }}</h2>
+            <div class="flex gap-2 text-sm">
+                <a href="{{ route('reports.export.stock', ['format' => 'csv']) }}" class="bg-white shadow rounded px-3 py-1.5">{{ __('ui.report.export_csv') }}</a>
+                <a href="{{ route('reports.export.stock', ['format' => 'pdf']) }}" class="bg-white shadow rounded px-3 py-1.5">{{ __('ui.report.export_pdf') }}</a>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

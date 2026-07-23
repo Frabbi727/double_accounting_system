@@ -159,6 +159,8 @@ return [
         'audit_live' => 'Live',
         'audit_reversed' => 'Reversed',
         'audit_reversal' => 'Reversal',
+        'export_csv' => 'Excel (CSV)',
+        'export_pdf' => 'PDF',
         'assets' => 'Assets',
         'liabilities' => 'Liabilities',
         'equity' => 'Equity',
