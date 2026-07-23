@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (পার্টি বিবরণী সহ)
+শেষ আপডেট: 2026-07-23 (ইনসেনটিভ/রিবেট UI সহ)
 
 ---
 
@@ -158,13 +158,23 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৮৭/৮৭ পাস।**
 
+## ✅ ধাপ ১৪ — ইনসেনটিভ ও রিবেট UI (FR-49/50/53, DONE, tested)
+
+বিদ্যমান `IncentiveService`/`RebateService` call করা screen (backend অপরিবর্তিত), ধাপ ৯-এর প্যাটার্নে:
+- **ইনসেনটিভ** (`IncentiveController`, `payment.manage` = owner+accountant) — প্রাপ্ত (আয়, Credit 4030) / প্রদত্ত (খরচ, Debit 5100); index তালিকা (IncentiveIn/Out) + create ফর্ম (direction/amount/cash-bank/date/note)।
+- **রিবেট** (`RebateController`, **`entry.delete` = owner only** — ইনভেন্টরি valuation বদলায়) — পণ্য নির্বাচন + পরিমাণ; হাতে থাকা স্টকের weighted-avg cost কমায়, Credit 1040; `reduce_payable` চেকবক্স (নগদ প্রাপ্তির বদলে 2010 কমাও, Alpine toggle)।
+- দুটোতেই `opening.locked`। nav-এ role-gated menu; `lang/*/ui.php`-এ `incentive`/`rebate` block + nav_more key।
+- টেস্ট: `tests/Feature/IncentiveRebateUiTest.php` — **৪/৪ পাস** (received→4030 আয়+cash; paid→5100 খরচ; rebate ৪০০→cost ৪০→৩৬ + 1040 ৪০০০→৩৬০০; role gating: accountant ইনসেনটিভ পারে কিন্তু রিবেট ৪০৩, salesperson দুটোই ৪০৩, owner দুটোই)।
+
+**বর্তমানে পুরো suite: ৯১/৯১ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): incentive/rebate UI, Dashboard পূর্ণ, audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): Dashboard পূর্ণ, audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
 
-> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)।
+> ধাপ ১১: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২: ক্রয় বিল প্রিন্ট (FR-36)। ধাপ ১৩: পার্টি বিবরণী (FR-64)। ধাপ ১৪: ইনসেনটিভ/রিবেট UI (FR-49/50/53)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
