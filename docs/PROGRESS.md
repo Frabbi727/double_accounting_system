@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (Discounts/Incentives/Rebate সহ)
+শেষ আপডেট: 2026-07-23 (Roles + Auth + Core UI সহ)
 
 ---
 
@@ -89,11 +89,25 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৩৮/৩৮ পাস।**
 
+## ✅ ধাপ ৮ — Roles + Auth + Core UI (DONE, tested + browser-verified)
+
+- **Auth**: Laravel Breeze (Blade). bilingual layout, ভাষা toggle (`/locale/{locale}`)।
+- **Roles**: spatie/laravel-permission — `owner`/`accountant`/`salesperson`; `RolesAndPermissionsSeeder` (permission: sale/purchase/expense/payment/stock/cost/report/master/entry.delete/user/opening)। `User`-এ `HasRoles`। FormRequest `authorize()` → `master.manage`।
+- **`RequireOpeningLocked` middleware** (alias `opening.locked`) — lock না হলে sale/purchase route → opening redirect (FR-18)।
+- **Core UI** (`app/Http/Controllers/Shop/*` + `resources/views/shop/*`): dashboard, master (product/customer/supplier/account, inline opening), opening lock, sale ও purchase entry (Alpine multi-line), reports (trial balance, stock, customer/supplier due, P&L)। সব বিদ্যমান service call করে (backend অপরিবর্তিত)।
+- **৳ ফরম্যাট** (`App\Support\Money::taka` + `@taka` directive) — বাংলা সংখ্যা + লাখ/কোটি grouping (NFR-11)।
+- **নিরাপত্তা কার্যকর**: cost/profit কলাম ও report `cost.view`/`report.view`-gated; salesperson-এর কাছে menu নেই + সরাসরি URL-এ 403 (NFR-07)।
+- Demo users (seed): owner@shop.test / accountant@shop.test / sales@shop.test — সবার password `password`।
+
+- টেস্ট: `tests/Feature/AuthorizationTest.php` (৪) + `OpeningLockUiTest.php` (২)। Breeze-এর নিজস্ব auth টেস্ট সহ **পুরো suite ৬৭/৬৭ পাস**। ব্রাউজারে owner login → product+opening → trial balance মেলে (৳ ২,০০০=২,০০০); salesperson-এ report 403 — যাচাইকৃত।
+
+**বর্তমানে পুরো suite: ৬৭/৬৭ পাস।**
+
 ---
 
-## ⏭️ পরের ধাপ (এখনো বাকি — build order অনুযায়ী)
+## ⏭️ পরের ধাপ (এখনো বাকি)
 
-8. **Roles ও permissions + Blade UI** — spatie/laravel-permission, `RequireOpeningLocked` middleware, policies (staff cost_price/profit দেখবে না), আসল ব্যবহারযোগ্য UI (login + entry screens + reports)। **এখনো কোনো screen নেই — সব service স্তরে, test দিয়ে চালানো।**
+**বাকি UI screens** (পরের milestone): ফেরত/সমন্বয় UI, incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, Cash Book FR-57, Low-stock FR-60, party statement FR-64, product-wise profit FR-65, Balance Sheet, Aging), **invoice/receipt print (FR-28)**, audit log view (FR-71), Excel/PDF export (FR-69), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

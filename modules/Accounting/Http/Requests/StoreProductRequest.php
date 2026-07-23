@@ -10,9 +10,9 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // TODO (roles & permissions milestone): replace with
-        // $this->user()->can('create', \Modules\Accounting\Models\Product::class);
-        return true;
+        // Master data (and the opening stock it carries) is managed by
+        // owner/accountant only, never the salesperson.
+        return (bool) $this->user()?->can('master.manage');
     }
 
     public function rules(): array

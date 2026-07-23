@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\Money;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // @taka($amount) → "৳ ১,২০,০০০.০০" (locale-aware money formatting).
+        Blade::directive('taka', fn ($expression) => "<?php echo \App\Support\Money::taka($expression); ?>");
     }
 }

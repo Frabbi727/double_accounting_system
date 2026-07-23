@@ -10,9 +10,9 @@ class StoreCustomerRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // TODO (roles & permissions milestone): replace with
-        // $this->user()->can('create', \Modules\Accounting\Models\Customer::class);
-        return true;
+        // Master data (and the opening balances it carries) is managed by
+        // owner/accountant only, never the salesperson.
+        return (bool) $this->user()?->can('master.manage');
     }
 
     public function rules(): array
@@ -24,7 +24,12 @@ class StoreCustomerRequest extends FormRequest
             'credit_limit' => ['nullable', 'numeric', 'min:0'],
             'default_discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
-            // Opening dues — one row per old unpaid invoice, or a single lump sum.
+            // Simple single opening due (the UI form). Mapped to an opening_items
+            // row by the controller.
+            'opening_amount' => ['nullable', 'numeric', 'gt:0'],
+            'opening_date' => ['nullable', 'date', 'before_or_equal:'.config('shop.cutoff_date')],
+
+            // Advanced: one row per old unpaid invoice (FR-05).
             'opening_items' => ['nullable', 'array'],
             'opening_items.*.amount' => ['required', 'numeric', 'gt:0'],
             'opening_items.*.original_date' => [
