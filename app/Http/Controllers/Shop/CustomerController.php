@@ -32,7 +32,7 @@ class CustomerController extends Controller
         // A single opening-due form field maps to one opening_items row.
         if (! empty($data['opening_amount'] ?? null)) {
             $data['opening_items'] = [[
-                'amount'        => $data['opening_amount'],
+                'amount' => $data['opening_amount'],
                 'original_date' => $data['opening_date'] ?? config('shop.cutoff_date'),
             ]];
         }

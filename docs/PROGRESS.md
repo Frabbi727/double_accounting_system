@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (Roles + Auth + Core UI সহ)
+শেষ আপডেট: 2026-07-23 (বিক্রয় ইনভয়েস প্রিন্ট সহ)
 
 ---
 
@@ -103,11 +103,34 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৬৭/৬৭ পাস।**
 
+## ✅ ধাপ ৯ — দৈনিক লেনদেন UI (DONE, tested + browser-verified)
+
+`app/Http/Controllers/Shop/` + `resources/views/shop/`-এ নতুন screen, সব বিদ্যমান service call করে (backend অপরিবর্তিত), ধাপ ৮-এর প্যাটার্নে:
+- **খরচ** (`ExpenseController`, `expense.create`) — খাত dropdown (5xxx), cash/bank থেকে।
+- **পেমেন্ট** (`PaymentController`, `payment.manage`) — কাস্টমার থেকে নেওয়া / সাপ্লায়ারকে দেওয়া (Alpine direction switch)।
+- **ট্রান্সফার** (`TransferController`, `payment.manage`) — cash/bank/loan-এর মধ্যে; same-account reject।
+- **বিক্রয়/ক্রয় ফেরত + স্টক ক্ষতি** (`SaleReturn`/`PurchaseReturn`/`StockAdjustment` Controller, **`entry.delete` = owner only**)।
+- সবগুলোতে `opening.locked` middleware। `lang/bn|en/ui.php`-এ নতুন key; nav-এ role-gated menu।
+
+- টেস্ট: `tests/Feature/DailyTransactionUiTest.php` — **৪/৪ পাস** (expense balanced, customer payment→AR কমে, transfer + same-account reject, role gating: salesperson/accountant/owner)।
+- ব্রাউজারে যাচাই: owner খরচ ৳৩,০০০ দিল → ট্রায়াল ব্যালেন্স মিলছে (২০,০০০=২০,০০০, cash ১৭,০০০); cutoff-এর আগের তারিখে period-lock guard আটকায়।
+
+**বর্তমানে পুরো suite: ৭১/৭১ পাস।**
+
+## ✅ ধাপ ১০ — বিক্রয় ইনভয়েস প্রিন্ট (DONE, tested + browser-verified)
+
+`SaleController::print(Sale)` + route `/sales/{sale}/print` (`can:sale.create`, opening.locked ছাড়া)। standalone `resources/views/shop/sale/print.blade.php` — নিজস্ব `@media print` CSS, A4 (default) + `?format=receipt` সরু থার্মাল লেআউট, "প্রিন্ট করুন" বোতাম (`window.print()`)। sales list-এ প্রিন্ট লিঙ্ক; `lang/*/ui.php`-এ `invoice` block।
+- **revenue-side only — cost/profit কোথাও নেই** (NFR-07), তাই বিক্রয়কর্মীও প্রিন্ট করতে পারে।
+- টেস্ট: `tests/Feature/InvoicePrintTest.php` — **৪/৪ পাস** (পণ্য+নিট দেখায়, cost/profit দেখায় না, salesperson পারে, role ছাড়া 403, receipt format render)।
+- ব্রাউজারে যাচাই: bilingual ইনভয়েস (আমার দোকান, লাক্স সাবান, নিট ৳৫৫০, বাকি ৳২৫০) — A4 ও রসিদ দুই ফরম্যাট।
+
+**বর্তমানে পুরো suite: ৭৫/৭৫ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): ফেরত/সমন্বয় UI, incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, Cash Book FR-57, Low-stock FR-60, party statement FR-64, product-wise profit FR-65, Balance Sheet, Aging), **invoice/receipt print (FR-28)**, audit log view (FR-71), Excel/PDF export (FR-69), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)।
+**বাকি UI screens** (পরের milestone): ক্রয় বিল প্রিন্ট (FR-36), incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, Cash Book FR-57, Low-stock FR-60, party statement FR-64, product-wise profit FR-65, Balance Sheet, Aging), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI

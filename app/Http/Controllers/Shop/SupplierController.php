@@ -28,16 +28,16 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'           => ['required', 'string', 'max:255'],
-            'phone'          => ['nullable', 'string', 'max:30', 'unique:suppliers,phone'],
-            'address'        => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30', 'unique:suppliers,phone'],
+            'address' => ['nullable', 'string', 'max:500'],
             'opening_amount' => ['nullable', 'numeric', 'gt:0'],
-            'opening_date'   => ['nullable', 'date', 'before_or_equal:'.config('shop.cutoff_date')],
+            'opening_date' => ['nullable', 'date', 'before_or_equal:'.config('shop.cutoff_date')],
         ]);
 
         if (! empty($data['opening_amount'])) {
             $data['opening_items'] = [[
-                'amount'        => $data['opening_amount'],
+                'amount' => $data['opening_amount'],
                 'original_date' => $data['opening_date'] ?? config('shop.cutoff_date'),
             ]];
         }

@@ -29,6 +29,19 @@
                         <a href="{{ route('purchases.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav.purchases') }}</a>
                     @endcan
 
+                    @can('expense.create')
+                        <a href="{{ route('expenses.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.expense') }}</a>
+                    @endcan
+
+                    @can('payment.manage')
+                        <a href="{{ route('payments.create') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.payment') }}</a>
+                        <a href="{{ route('transfers.create') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.transfer') }}</a>
+                    @endcan
+
+                    @can('entry.delete')
+                        <a href="{{ route('returns.sale') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.returns') }}</a>
+                    @endcan
+
                     @can('report.view')
                         <a href="{{ route('reports.trial_balance') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav.reports') }}</a>
                     @endcan

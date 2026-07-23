@@ -39,7 +39,7 @@ class ReportController extends Controller
 
         return view('shop.report.party_due', [
             'title' => __('ui.report.customer_due'),
-            'rows'  => $rows,
+            'rows' => $rows,
         ]);
     }
 
@@ -52,7 +52,7 @@ class ReportController extends Controller
 
         return view('shop.report.party_due', [
             'title' => __('ui.report.supplier_due'),
-            'rows'  => $rows,
+            'rows' => $rows,
         ]);
     }
 

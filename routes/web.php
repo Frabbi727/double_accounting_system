@@ -4,12 +4,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\CustomerController;
 use App\Http\Controllers\Shop\DashboardController;
+use App\Http\Controllers\Shop\ExpenseController;
 use App\Http\Controllers\Shop\OpeningController;
+use App\Http\Controllers\Shop\PaymentController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\PurchaseController;
+use App\Http\Controllers\Shop\PurchaseReturnController;
 use App\Http\Controllers\Shop\ReportController;
 use App\Http\Controllers\Shop\SaleController;
+use App\Http\Controllers\Shop\SaleReturnController;
+use App\Http\Controllers\Shop\StockAdjustmentController;
 use App\Http\Controllers\Shop\SupplierController;
+use App\Http\Controllers\Shop\TransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -62,11 +68,44 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
     });
 
+    // Printing an invoice only needs sale.create (no opening lock) — view only.
+    Route::middleware('can:sale.create')->group(function () {
+        Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
+    });
+
     // Purchases — needs purchase.create and a locked opening period.
     Route::middleware(['can:purchase.create', 'opening.locked'])->group(function () {
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+    });
+
+    // Expenses (owner + accountant).
+    Route::middleware(['can:expense.create', 'opening.locked'])->group(function () {
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    });
+
+    // Payments & transfers (owner + accountant).
+    Route::middleware(['can:payment.manage', 'opening.locked'])->group(function () {
+        Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+        Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+
+        Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
+        Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
+    });
+
+    // Returns & stock adjustments (owner only — corrections, §3.1).
+    Route::middleware(['can:entry.delete', 'opening.locked'])->group(function () {
+        Route::get('/returns/sale', [SaleReturnController::class, 'create'])->name('returns.sale');
+        Route::post('/returns/sale', [SaleReturnController::class, 'store'])->name('returns.sale.store');
+
+        Route::get('/returns/purchase', [PurchaseReturnController::class, 'create'])->name('returns.purchase');
+        Route::post('/returns/purchase', [PurchaseReturnController::class, 'store'])->name('returns.purchase.store');
+
+        Route::get('/stock-loss', [StockAdjustmentController::class, 'create'])->name('stock_loss.create');
+        Route::post('/stock-loss', [StockAdjustmentController::class, 'store'])->name('stock_loss.store');
     });
 
     // Reports (owner + accountant). Cost/profit columns additionally gated in-view.

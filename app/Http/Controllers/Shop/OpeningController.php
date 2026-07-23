@@ -19,11 +19,11 @@ class OpeningController extends Controller
         $bs = $this->reports->balanceSheet();
 
         return view('shop.opening.index', [
-            'totalAssets'      => $bs['total_assets'],
+            'totalAssets' => $bs['total_assets'],
             'totalLiabilities' => $bs['total_liabilities'],
-            'totalEquity'      => $bs['total_equity'],
-            'balanced'         => $bs['balanced'],
-            'locked'           => $this->periodLock->isOpeningLocked(),
+            'totalEquity' => $bs['total_equity'],
+            'balanced' => $bs['balanced'],
+            'locked' => $this->periodLock->isOpeningLocked(),
         ]);
     }
 

@@ -22,7 +22,7 @@ class AccountController extends Controller
 
         return view('shop.account.index', [
             'accounts' => $accounts->map(fn (Account $a) => [
-                'model'   => $a,
+                'model' => $a,
                 'balance' => $this->ledger->balance($a),
             ]),
         ]);
@@ -36,8 +36,8 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'            => ['required', 'string', 'max:255'],
-            'subtype'         => ['required', 'in:cash,bank,loan'],
+            'name' => ['required', 'string', 'max:255'],
+            'subtype' => ['required', 'in:cash,bank,loan'],
             'opening_balance' => ['nullable', 'numeric', 'min:0'],
         ]);
 

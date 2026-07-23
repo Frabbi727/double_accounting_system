@@ -5,47 +5,42 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Product;
-use Modules\Accounting\Models\Supplier;
-use Modules\Purchase\Models\Purchase;
-use Modules\Purchase\Services\PurchaseService;
+use Modules\Adjustment\Services\PurchaseReturnService;
 
-class PurchaseController extends Controller
+class PurchaseReturnController extends Controller
 {
     public function __construct(
-        private PurchaseService $purchases,
+        private PurchaseReturnService $returns,
     ) {}
-
-    public function index()
-    {
-        return view('shop.purchase.index', [
-            'purchases' => Purchase::latest('date')->latest('id')->limit(50)->get(),
-        ]);
-    }
 
     public function create()
     {
-        return view('shop.purchase.create', [
+        return view('shop.return.purchase', [
             'products' => Product::where('is_active', true)->orderBy('name')->get(),
-            'suppliers' => Supplier::orderBy('name')->get(),
+            'paymentAccounts' => Account::cashOrBank()->orderBy('code')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'supplier_id' => ['nullable', 'exists:suppliers,id'],
-            'date' => ['required', 'date'],
-            'landed_cost' => ['nullable', 'numeric', 'min:0'],
-            'paid_amount' => ['nullable', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.qty' => ['required', 'numeric', 'gt:0'],
-            'items.*.unit_cost' => ['required', 'numeric', 'gt:0'],
+            'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'refund_account_id' => ['nullable', 'exists:accounts,id'],
+            'reduce_payable' => ['nullable', 'boolean'],
+            'date' => ['required', 'date'],
         ]);
 
         try {
-            $this->purchases->create($data);
+            $this->returns->returnPurchase($data['items'], [
+                'date' => $data['date'],
+                'refund_amount' => $data['refund_amount'] ?? 0,
+                'refund_account_id' => $data['refund_account_id'] ?? null,
+            ]);
         } catch (\RuntimeException|\InvalidArgumentException $e) {
             throw ValidationException::withMessages(['items' => $e->getMessage()]);
         }

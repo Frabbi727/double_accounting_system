@@ -23,10 +23,23 @@ class SaleController extends Controller
         ]);
     }
 
+    /**
+     * Printable invoice (FR-28). Revenue-side only — no cost/profit — so it is
+     * safe for the salesperson to print (NFR-07). ?format=receipt renders a
+     * narrow thermal-printer layout.
+     */
+    public function print(Sale $sale)
+    {
+        return view('shop.sale.print', [
+            'sale' => $sale->load('items.product', 'customer'),
+            'format' => request('format') === 'receipt' ? 'receipt' : 'a4',
+        ]);
+    }
+
     public function create()
     {
         return view('shop.sale.create', [
-            'products'  => Product::where('is_active', true)->orderBy('name')->get(),
+            'products' => Product::where('is_active', true)->orderBy('name')->get(),
             'customers' => Customer::orderBy('name')->get(),
         ]);
     }
@@ -34,15 +47,15 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'customer_id'        => ['nullable', 'exists:customers,id'],
-            'date'               => ['required', 'date'],
-            'discount'           => ['nullable', 'numeric', 'min:0'],
-            'paid_amount'        => ['nullable', 'numeric', 'min:0'],
-            'items'              => ['required', 'array', 'min:1'],
+            'customer_id' => ['nullable', 'exists:customers,id'],
+            'date' => ['required', 'date'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'paid_amount' => ['nullable', 'numeric', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.qty'        => ['required', 'numeric', 'gt:0'],
+            'items.*.qty' => ['required', 'numeric', 'gt:0'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'items.*.discount'   => ['nullable', 'numeric', 'min:0'],
+            'items.*.discount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         try {
