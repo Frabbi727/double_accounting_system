@@ -5,11 +5,13 @@ use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\CustomerController;
 use App\Http\Controllers\Shop\DashboardController;
 use App\Http\Controllers\Shop\ExpenseController;
+use App\Http\Controllers\Shop\IncentiveController;
 use App\Http\Controllers\Shop\OpeningController;
 use App\Http\Controllers\Shop\PaymentController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\PurchaseController;
 use App\Http\Controllers\Shop\PurchaseReturnController;
+use App\Http\Controllers\Shop\RebateController;
 use App\Http\Controllers\Shop\ReportController;
 use App\Http\Controllers\Shop\SaleController;
 use App\Http\Controllers\Shop\SaleReturnController;
@@ -99,6 +101,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
         Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
+
+        // Incentives — income received / commission paid (owner + accountant).
+        Route::get('/incentives', [IncentiveController::class, 'index'])->name('incentives.index');
+        Route::get('/incentives/create', [IncentiveController::class, 'create'])->name('incentives.create');
+        Route::post('/incentives', [IncentiveController::class, 'store'])->name('incentives.store');
     });
 
     // Returns & stock adjustments (owner only — corrections, §3.1).
@@ -111,6 +118,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/stock-loss', [StockAdjustmentController::class, 'create'])->name('stock_loss.create');
         Route::post('/stock-loss', [StockAdjustmentController::class, 'store'])->name('stock_loss.store');
+
+        // Rebate — lowers a product's cost (owner only, inventory valuation).
+        Route::get('/rebates/create', [RebateController::class, 'create'])->name('rebates.create');
+        Route::post('/rebates', [RebateController::class, 'store'])->name('rebates.store');
     });
 
     // Reports (owner + accountant). Cost/profit columns additionally gated in-view.

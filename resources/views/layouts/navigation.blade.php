@@ -36,10 +36,12 @@
                     @can('payment.manage')
                         <a href="{{ route('payments.create') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.payment') }}</a>
                         <a href="{{ route('transfers.create') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.transfer') }}</a>
+                        <a href="{{ route('incentives.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.incentive') }}</a>
                     @endcan
 
                     @can('entry.delete')
                         <a href="{{ route('returns.sale') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.returns') }}</a>
+                        <a href="{{ route('rebates.create') }}" class="text-gray-600 hover:text-gray-900">{{ __('ui.nav_more.rebate') }}</a>
                     @endcan
 
                     @can('report.view')
