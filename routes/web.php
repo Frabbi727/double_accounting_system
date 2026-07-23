@@ -80,6 +80,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     });
 
+    // Printing a purchase bill only needs purchase.create (no opening lock) — view only.
+    Route::middleware('can:purchase.create')->group(function () {
+        Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
+    });
+
     // Expenses (owner + accountant).
     Route::middleware(['can:expense.create', 'opening.locked'])->group(function () {
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');

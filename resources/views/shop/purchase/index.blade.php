@@ -16,6 +16,7 @@
                         <th class="px-4 py-2">#</th>
                         <th class="px-4 py-2 text-right">{{ __('ui.report.total') }}</th>
                         <th class="px-4 py-2 text-right">{{ __('ui.purchase.paid') }}</th>
+                        <th class="px-4 py-2 text-right">{{ __('ui.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -25,9 +26,12 @@
                             <td class="px-4 py-2">{{ $p->invoice_no ?? '#'.$p->id }}</td>
                             <td class="px-4 py-2 text-right">@taka($p->total())</td>
                             <td class="px-4 py-2 text-right">@taka($p->paid_amount)</td>
+                            <td class="px-4 py-2 text-right">
+                                <a href="{{ route('purchases.print', $p) }}" target="_blank" class="text-blue-600 hover:underline">{{ __('ui.bill.print') }}</a>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
+                        <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

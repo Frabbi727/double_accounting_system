@@ -52,4 +52,12 @@ class PurchaseController extends Controller
 
         return redirect()->route('purchases.index')->with('status', __('ui.common.saved'));
     }
+
+    public function print(Purchase $purchase)
+    {
+        return view('shop.purchase.print', [
+            'purchase' => $purchase->load('items.product', 'supplier'),
+            'format' => request('format') === 'receipt' ? 'receipt' : 'a4',
+        ]);
+    }
 }

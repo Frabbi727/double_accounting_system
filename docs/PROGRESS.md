@@ -3,7 +3,7 @@
 একটা bilingual (বাংলা default / English) double-entry accounting app, দোকানের জন্য।
 এই ফাইলটা কাজের অগ্রগতির লগ — পরে যেখান থেকে থেমেছি সেখান থেকে শুরু করার জন্য।
 
-শেষ আপডেট: 2026-07-23 (রিপোর্ট স্ক্রিন সহ)
+শেষ আপডেট: 2026-07-23 (ক্রয় বিল প্রিন্ট সহ)
 
 ---
 
@@ -142,13 +142,21 @@ requirements-document-bn.md (FR-21, 47-53) মেনে:
 
 **বর্তমানে পুরো suite: ৮১/৮১ পাস।**
 
+## ✅ ধাপ ১২ — ক্রয় বিল প্রিন্ট (DONE, tested)
+
+`PurchaseController::print(Purchase)` + route `/purchases/{purchase}/print` (`can:purchase.create`, opening.locked ছাড়া — বিক্রয় প্রিন্টের হুবহু প্যাটার্ন)। standalone `resources/views/shop/purchase/print.blade.php` — নিজস্ব `@media print` CSS, A4 (default) + `?format=receipt`; পণ্য/ক্রয়মূল্য/লাইন-মোট, পণ্যমূল্য + পরিবহন খরচ → সর্বমোট, পরিশোধ, বাকি। purchase index-এ প্রিন্ট লিঙ্ক; `lang/*/ui.php`-এ নতুন `bill` block।
+- **cost-side document** (ক্রয়মূল্য দেখায়) — কিন্তু route `purchase.create`-gated, তাই salesperson (যার permission নেই) এমনিতেই আটকে যায়।
+- টেস্ট: `tests/Feature/PurchaseBillPrintTest.php` — **৩/৩ পাস** (পণ্য+পণ্যমূল্য ৪২০+সর্বমোট ৫০০+বাকি ২০০ দেখায়; salesperson ও role-হীন user 403; receipt format render)।
+
+**বর্তমানে পুরো suite: ৮৪/৮৪ পাস।**
+
 ---
 
 ## ⏭️ পরের ধাপ (এখনো বাকি)
 
-**বাকি UI screens** (পরের milestone): ক্রয় বিল প্রিন্ট (FR-36), incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, party statement FR-64), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
+**বাকি UI screens** (পরের milestone): incentive/rebate UI, বাকি রিপোর্ট (Dashboard পূর্ণ, party statement FR-64), audit log view (FR-71), Excel/PDF export (FR-69, dompdf), backup (FR-72), shop profile/logo (FR-73), user management UI (FR-70)। + deferred PHPStan/larastan।
 
-> ধাপ ১১-এ শেষ: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book।
+> ধাপ ১১-এ শেষ: Balance Sheet, Cash Book (FR-57), Low-stock (FR-60), product-wise profit (FR-65), Aging, Day Book। ধাপ ১২-এ শেষ: ক্রয় বিল প্রিন্ট (FR-36)।
 6. **Returns ও adjustments**
 7. **Discounts / incentives / rebates**
 8. **Roles ও permissions** (spatie) + `RequireOpeningLocked` middleware + policies + Blade UI
