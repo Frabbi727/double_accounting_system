@@ -4,6 +4,20 @@ This file contains the terminal commands required to deploy updates to the cPane
 
 ---
 
+## 0. Local Build (Run LOCALLY before pushing to Git)
+Since the production server does not have Node/NPM installed, assets must be compiled locally:
+```bash
+# 1. Run local build
+npm run build
+
+# 2. Commit the changes in public/build and push to GitHub
+git add public/build
+git commit -m "build: compile assets for production"
+git push origin production
+```
+
+---
+
 ## 1. Standard Update (Run every time)
 Run this block whenever you push new changes to GitHub and want to update the production site:
 ```bash
@@ -18,9 +32,6 @@ php artisan optimize:clear
 
 # 4. Cache configurations and routes again for production
 php artisan optimize
-
-# 5. Install npm dependencies and build frontend assets
-npm install && npm run build
 ```
 
 ---
