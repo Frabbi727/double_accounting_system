@@ -201,6 +201,16 @@ return [
         'type' => 'Type',
         'balance' => 'Balance',
         'opening_balance' => 'Opening Balance',
+        'set_opening' => 'Set Opening',
+        'edit_opening' => 'Edit Opening',
+        'edit_opening_title' => 'Set / Edit Opening Balance',
+        'opening_amount' => 'Opening Amount (৳)',
+        'opening_reason' => 'Reason (optional)',
+        'opening_reason_ph' => 'e.g. correcting the starting figure',
+        'opening_note' => 'Every change is stored permanently in the ledger — the old entry is reversed and a new one posted, so the full history stays tracked.',
+        'opening_default_reason' => 'Opening balance set',
+        'opening_saved' => 'Opening balance saved.',
+        'opening_locked_note' => 'The opening period is locked — opening balances can no longer be changed.',
     ],
 
     'sale' => [

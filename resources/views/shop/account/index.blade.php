@@ -8,6 +8,9 @@
 
     <div class="py-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         @include('shop._flash')
+        @if ($openingLocked)
+            <div class="mb-4 text-sm text-gray-600 bg-gray-100 rounded p-3">{{ __('ui.account.opening_locked_note') }}</div>
+        @endif
         <div class="bg-white rounded-lg shadow overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-gray-500 text-left">
@@ -28,7 +31,10 @@
                                 </a>
                             </td>
                             <td class="px-4 py-2 text-right">@taka($row['balance'])</td>
-                            <td class="px-4 py-2 text-right">
+                            <td class="px-4 py-2 text-right space-x-3">
+                                @unless ($openingLocked)
+                                    <a href="{{ route('accounts.opening.edit', $row['model']) }}" class="text-sm text-emerald-600 hover:underline">{{ __('ui.account.set_opening') }}</a>
+                                @endunless
                                 <a href="{{ route('accounts.statement', $row['model']) }}" class="text-sm text-indigo-600 hover:underline">{{ __('ui.report.view') }}</a>
                             </td>
                         </tr>

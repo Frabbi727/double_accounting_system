@@ -4,6 +4,7 @@ namespace Modules\Accounting\Services\Master;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\Account;
+use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Accounting\OpeningEntryService;
 
 /**
@@ -14,6 +15,7 @@ class AccountService
 {
     public function __construct(
         private OpeningEntryService $opening,
+        private LedgerService $ledger,
     ) {}
 
     public function create(array $data): Account
@@ -58,6 +60,46 @@ class AccountService
             date: config('shop.cutoff_date'),
             reason: $reason,
         );
+    }
+
+    /**
+     * Set or edit an account's opening balance from the account screen.
+     *
+     * Works whether or not an opening balance already exists, and always keeps
+     * a full audit trail — corrections reverse the old entry and post a new one,
+     * never editing in place. Zeroing an existing opening simply reverses it.
+     */
+    public function setOpening(Account $account, float $amount, string $reason): void
+    {
+        DB::transaction(function () use ($account, $amount, $reason) {
+
+            $existing = $this->opening->findOpeningEntry($account);
+            $amount = round($amount, 2);
+
+            // No opening yet — post a clean first entry (skip the "corrected:" label).
+            if ($existing === null) {
+                if ($amount > 0) {
+                    $this->opening->post(
+                        account: $account,
+                        amount: $amount,
+                        date: config('shop.cutoff_date'),
+                        source: $account,
+                    );
+                }
+
+                return; // amount 0 with nothing to change — nothing to do.
+            }
+
+            // An opening exists. Zeroing it means removing it entirely.
+            if ($amount <= 0) {
+                $this->ledger->reverse($existing, $reason);
+
+                return;
+            }
+
+            // Otherwise reverse the old entry and repost the corrected amount.
+            $this->correctOpening($account, $amount, $reason);
+        });
     }
 
     /** Next free code in the right series: cash 1010+, bank 1021+, loan 2020+. */

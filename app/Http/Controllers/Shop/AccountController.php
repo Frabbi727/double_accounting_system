@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\Accounting\LedgerService;
+use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Modules\Accounting\Services\Master\AccountService;
 use Modules\Accounting\Services\Reporting\ReportService;
 
@@ -17,6 +18,7 @@ class AccountController extends Controller
         private AccountService $accounts,
         private LedgerService $ledger,
         private ReportService $reports,
+        private PeriodLockService $periodLock,
     ) {}
 
     public function index(): View
@@ -29,6 +31,7 @@ class AccountController extends Controller
                 'model' => $a,
                 'balance' => $this->ledger->balance($a),
             ]),
+            'openingLocked' => $this->periodLock->isOpeningLocked(),
         ]);
     }
 
@@ -51,6 +54,43 @@ class AccountController extends Controller
     public function create(): View
     {
         return view('shop.account.create');
+    }
+
+    /**
+     * Set or edit the opening balance of an existing account. Pre-lock only.
+     * The current opening equals the live ledger balance (nothing else is posted
+     * before the opening period is locked).
+     */
+    public function editOpening(Account $account): View|RedirectResponse
+    {
+        if ($this->periodLock->isOpeningLocked()) {
+            return redirect()->route('accounts.index')->with('warning', __('ui.account.opening_locked_note'));
+        }
+
+        return view('shop.account.opening', [
+            'account' => $account,
+            'current' => $this->ledger->balance($account),
+        ]);
+    }
+
+    public function updateOpening(Request $request, Account $account): RedirectResponse
+    {
+        if ($this->periodLock->isOpeningLocked()) {
+            return redirect()->route('accounts.index')->with('warning', __('ui.account.opening_locked_note'));
+        }
+
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0'],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $this->accounts->setOpening(
+            $account,
+            (float) $data['amount'],
+            $data['reason'] ?? __('ui.account.opening_default_reason'),
+        );
+
+        return redirect()->route('accounts.index')->with('status', __('ui.account.opening_saved'));
     }
 
     public function store(Request $request): RedirectResponse

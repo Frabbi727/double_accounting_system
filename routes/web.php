@@ -78,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
         Route::get('/accounts/create', [AccountController::class, 'create'])->name('accounts.create');
+        Route::get('/accounts/{account}/opening/edit', [AccountController::class, 'editOpening'])->name('accounts.opening.edit');
+        Route::post('/accounts/{account}/opening', [AccountController::class, 'updateOpening'])->name('accounts.opening.update');
         Route::get('/accounts/{account}/statement', [AccountController::class, 'statement'])->name('accounts.statement');
         Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
 
