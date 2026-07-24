@@ -158,6 +158,7 @@ return [
             'start' => 'Start setup',
             'save' => 'Save',
             'add' => 'Add',
+            'add_new' => 'Add new',
             'added_count' => 'Added (:count)',
 
             // Step names (checklist)
@@ -186,6 +187,8 @@ return [
             // Cash step
             'cash_title' => 'Cash & bank balance',
             'cash_help' => 'Enter how much money you have right now in each account. Leave blank if none.',
+            'cash_section_title' => 'Cash & bank (money you have)',
+            'cash_section_help' => 'How much is in hand and in each bank / mobile account today.',
             'cash_none' => 'No cash/bank account found. Add one first.',
             'cash_add_account' => 'Add a new bank / loan account',
             'cash_reason' => 'Opening balance (setup wizard)',

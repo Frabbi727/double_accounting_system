@@ -5,39 +5,46 @@
     :help="__('ui.opening.wizard.assets_help')">
 
     @if ($categories->isEmpty())
-        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            {{ __('ui.opening.wizard.assets_no_category') }}
-            <a href="{{ route('asset-categories.index') }}" class="font-medium underline">
+        <div class="flex flex-col items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <span class="leading-relaxed">{{ __('ui.opening.wizard.assets_no_category') }}</span>
+            <a href="{{ route('asset-categories.index') }}"
+               class="inline-flex items-center gap-1.5 rounded-md bg-amber-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-amber-700 transition">
                 {{ __('ui.opening.wizard.assets_add_category') }}
             </a>
         </div>
     @else
-        <form method="POST" action="{{ route('opening.setup.assets') }}" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+        @php($input = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500')
+
+        <form method="POST" action="{{ route('opening.setup.assets') }}"
+              class="rounded-xl border border-gray-200 bg-gray-50/70 p-4 sm:p-5 space-y-4">
             @csrf
-            <div class="sm:col-span-4">
-                <label class="text-xs font-medium text-gray-600">{{ __('ui.opening.wizard.asset_category') }}</label>
-                <select name="asset_category_id" required
-                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
-                    @foreach ($categories as $cat)
-                        <option value="{{ $cat->id }}" @selected(old('asset_category_id') == $cat->id)>{{ $cat->name }}</option>
-                    @endforeach
-                </select>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('ui.opening.wizard.add_new') }}</p>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="text-sm font-medium text-gray-600">{{ __('ui.opening.wizard.asset_category') }}</label>
+                    <select name="asset_category_id" required class="{{ $input }}">
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" @selected(old('asset_category_id') == $cat->id)>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600">{{ __('ui.opening.wizard.asset_name') }}</label>
+                    <input name="name" required value="{{ old('name') }}" class="{{ $input }}">
+                    @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600">{{ __('ui.opening.wizard.asset_value') }}</label>
+                    <input name="amount" type="number" step="0.01" min="0.01" required value="{{ old('amount') }}" placeholder="0"
+                           class="{{ $input }} text-right">
+                    @error('amount') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
-            <div class="sm:col-span-4">
-                <label class="text-xs font-medium text-gray-600">{{ __('ui.opening.wizard.asset_name') }}</label>
-                <input name="name" required value="{{ old('name') }}"
-                       class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
-                @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div class="sm:col-span-2">
-                <label class="text-xs font-medium text-gray-600">{{ __('ui.opening.wizard.asset_value') }}</label>
-                <input name="amount" type="number" step="0.01" min="0.01" required value="{{ old('amount') }}" placeholder="0"
-                       class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm text-right">
-                @error('amount') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div class="sm:col-span-2">
-                <button type="submit" class="w-full bg-gray-800 text-white rounded px-3 py-2 text-sm hover:bg-gray-700">
-                    + {{ __('ui.opening.wizard.add') }}
+
+            <div class="flex justify-end">
+                <button type="submit" class="inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-800 transition">
+                    <span aria-hidden="true">+</span> {{ __('ui.opening.wizard.add') }}
                 </button>
             </div>
         </form>
