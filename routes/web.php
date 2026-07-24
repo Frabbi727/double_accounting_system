@@ -49,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('can:opening.manage')->group(function () {
         Route::get('/opening', [OpeningController::class, 'index'])->name('opening.index');
         Route::post('/opening/lock', [OpeningController::class, 'lock'])->name('opening.lock');
+        Route::post('/opening/reopen', [OpeningController::class, 'reopen'])->name('opening.reopen');
+        Route::post('/opening/unlock', [OpeningController::class, 'unlock'])->name('opening.unlock');
     });
 
     // Master data (owner + accountant).

@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Modules\Accounting\Models\AccountingPeriod;
-use Modules\Accounting\Models\JournalEntry;
-use Modules\Accounting\Models\StockMovement;
+use Modules\Accounting\Services\Accounting\PeriodLockService;
 
 /**
  * Realigns the opening cut-off date to match config('shop.cutoff_date').
@@ -23,7 +22,7 @@ class SetCutoffDate extends Command
 
     protected $description = 'Realign opening cut-off (period + opening entries + opening stock) to config shop.cutoff_date';
 
-    public function handle(): int
+    public function handle(PeriodLockService $periodLock): int
     {
         $newCutoff = config('shop.cutoff_date');
 
@@ -36,7 +35,7 @@ class SetCutoffDate extends Command
         }
 
         $oldCutoff = $period->end_date->toDateString();
-        $new = \Illuminate\Support\Carbon::parse($newCutoff)->toDateString();
+        $new = Carbon::parse($newCutoff)->toDateString();
 
         if ($oldCutoff === $new) {
             $this->info("Nothing to do — opening cut-off is already {$new}.");
@@ -44,24 +43,12 @@ class SetCutoffDate extends Command
             return self::SUCCESS;
         }
 
-        [$entries, $stock] = DB::transaction(function () use ($period, $oldCutoff, $new) {
-            $entries = JournalEntry::where('reference_type', 'Opening')
-                ->whereDate('date', $oldCutoff)
-                ->update(['date' => $new]);
-
-            $stock = StockMovement::opening()
-                ->whereDate('date', $oldCutoff)
-                ->update(['date' => $new]);
-
-            $period->update(['end_date' => $new]);
-
-            return [$entries, $stock];
-        });
+        // Single source of truth: same realign logic the UI uses.
+        $periodLock->realignCutoff($new);
 
         $this->info("Opening cut-off realigned: {$oldCutoff} → {$new}");
         $this->line("  • accounting period end_date → {$new} (locked state unchanged)");
-        $this->line("  • opening journal entries re-dated: {$entries}");
-        $this->line("  • opening stock movements re-dated: {$stock}");
+        $this->line('  • opening journal entries & stock movements re-dated to the new cut-off');
         $this->newLine();
         $this->info("Daily transactions dated after {$new} are now allowed.");
 

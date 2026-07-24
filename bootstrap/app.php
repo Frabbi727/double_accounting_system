@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Modules\Accounting\Exceptions\PeriodLockedException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,4 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // A locked-period rejection (e.g. adding an opening balance after the
+        // opening period is locked) must never be a raw 500. Show the friendly,
+        // actionable message and send the user back to the form they came from.
+        $exceptions->render(function (PeriodLockedException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            return back()->withInput()->with('warning', $e->getMessage());
+        });
     })->create();

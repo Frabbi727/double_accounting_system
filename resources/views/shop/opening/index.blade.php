@@ -9,6 +9,19 @@
          x-data="{ confirming: false }">
         @include('shop._flash')
 
+        {{-- ============ Mode banner ============ --}}
+        @if ($locked)
+            <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+                <span class="font-semibold">{{ __('ui.opening.mode_business') }}</span>
+                — {{ __('ui.opening.mode_business_help') }}
+            </div>
+        @else
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                <span class="font-semibold">{{ __('ui.opening.mode_setup') }}</span>
+                — {{ __('ui.opening.mode_setup_help') }}
+            </div>
+        @endif
+
         {{-- ============ Overall summary ============ --}}
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold mb-4">{{ __('ui.opening.overall') }}</h3>
@@ -145,6 +158,45 @@
                         </ul>
                     </div>
                 @endif
+
+                {{-- Primary recovery: go back to setup to add/fix opening data. --}}
+                <div class="mt-6 border-t pt-4">
+                    <p class="text-xs text-gray-500 mb-3">{{ __('ui.opening.back_to_setup_help') }}</p>
+                    <form method="POST" action="{{ route('opening.unlock') }}">
+                        @csrf
+                        <button type="submit" class="bg-amber-600 text-white rounded px-4 py-2 text-sm hover:bg-amber-700">
+                            {{ __('ui.opening.back_to_setup') }}
+                        </button>
+                    </form>
+                </div>
+
+                {{-- Owner recovery: fix the business start date without a developer. --}}
+                <div class="mt-6 border-t pt-4" x-data="{ editing: false }">
+                    <button type="button" @click="editing = !editing"
+                            class="text-sm text-indigo-600 hover:underline">
+                        {{ __('ui.opening.change_start_date') }}
+                    </button>
+                    <div x-show="editing" x-cloak style="display:none" class="mt-3">
+                        <p class="text-xs text-gray-500 mb-3">{{ __('ui.opening.change_start_date_help') }}</p>
+                        <form method="POST" action="{{ route('opening.reopen') }}" class="space-y-3">
+                            @csrf
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">{{ __('ui.opening.start_date_label') }}</label>
+                                <input name="start_date" type="date" required
+                                       value="{{ old('start_date', now()->toDateString()) }}"
+                                       class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600">{{ __('ui.opening.change_start_date_reason') }}</label>
+                                <input name="reason" value="{{ old('reason') }}"
+                                       class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                            </div>
+                            <button type="submit" class="bg-gray-800 text-white rounded px-4 py-2 text-sm hover:bg-gray-700">
+                                {{ __('ui.opening.change_start_date_btn') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @else
                 <p class="text-gray-600 text-sm mb-4">{{ __('ui.opening.unlocked_note') }}</p>
                 <button type="button"

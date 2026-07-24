@@ -15,7 +15,7 @@ return [
     | requires reversing every opening entry.
     |
     */
-    'cutoff_date' => env('SHOP_CUTOFF_DATE', '2026-07-31'),
+    'cutoff_date' => env('SHOP_CUTOFF_DATE', \Illuminate\Support\Carbon::yesterday()->toDateString()),
 
     'name' => env('SHOP_NAME', 'আমার দোকান'),
     'currency' => env('SHOP_CURRENCY', '৳'),

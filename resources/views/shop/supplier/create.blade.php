@@ -22,19 +22,23 @@
                     <input name="address" value="{{ old('address') }}" class="{{ $input }}">
                 </div>
             </div>
-            <fieldset class="border-t pt-4">
-                <legend class="text-sm font-medium text-gray-700">{{ __('ui.supplier.opening_due') }}</legend>
-                <div class="grid grid-cols-2 gap-4 mt-2">
-                    <div>
-                        <label class="text-sm text-gray-600">{{ __('ui.supplier.opening_due') }}</label>
-                        <input name="opening_amount" type="number" step="0.01" min="0" value="{{ old('opening_amount') }}" class="{{ $input }}">
+            @if ($openingLocked ?? false)
+                @include('shop._opening_locked_note')
+            @else
+                <fieldset class="border-t pt-4">
+                    <legend class="text-sm font-medium text-gray-700">{{ __('ui.supplier.opening_due') }}</legend>
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label class="text-sm text-gray-600">{{ __('ui.supplier.opening_due') }}</label>
+                            <input name="opening_amount" type="number" step="0.01" min="0" value="{{ old('opening_amount') }}" class="{{ $input }}">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">{{ __('ui.supplier.opening_date') }}</label>
+                            <input name="opening_date" type="date" value="{{ old('opening_date') }}" class="{{ $input }}">
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-sm text-gray-600">{{ __('ui.supplier.opening_date') }}</label>
-                        <input name="opening_date" type="date" value="{{ old('opening_date') }}" class="{{ $input }}">
-                    </div>
-                </div>
-            </fieldset>
+                </fieldset>
+            @endif
             <div class="flex gap-3">
                 <button class="bg-gray-800 text-white rounded px-4 py-2 text-sm">{{ __('ui.common.save') }}</button>
                 <a href="{{ route('suppliers.index') }}" class="text-gray-500 px-4 py-2 text-sm">{{ __('ui.common.cancel') }}</a>

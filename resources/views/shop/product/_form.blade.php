@@ -126,19 +126,23 @@
             </div>
         </div>
 
-        <fieldset class="border-t pt-4">
-            <legend class="text-sm font-medium text-gray-700">{{ __('ui.product.opening_qty') }}</legend>
-            <div class="grid grid-cols-2 gap-4 mt-2">
-                <div>
-                    <label class="text-sm text-gray-600">{{ __('ui.product.opening_qty') }}</label>
-                    <input name="opening_qty" type="number" step="0.001" min="0" value="{{ old('opening_qty') }}" class="{{ $input }}">
+        @if ($openingLocked ?? false)
+            @include('shop._opening_locked_note')
+        @else
+            <fieldset class="border-t pt-4">
+                <legend class="text-sm font-medium text-gray-700">{{ __('ui.product.opening_qty') }}</legend>
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <label class="text-sm text-gray-600">{{ __('ui.product.opening_qty') }}</label>
+                        <input name="opening_qty" type="number" step="0.001" min="0" value="{{ old('opening_qty') }}" class="{{ $input }}">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-600">{{ __('ui.product.opening_cost') }}</label>
+                        <input name="opening_cost" type="number" step="0.0001" min="0" value="{{ old('opening_cost') }}" class="{{ $input }}">
+                    </div>
                 </div>
-                <div>
-                    <label class="text-sm text-gray-600">{{ __('ui.product.opening_cost') }}</label>
-                    <input name="opening_cost" type="number" step="0.0001" min="0" value="{{ old('opening_cost') }}" class="{{ $input }}">
-                </div>
-            </div>
-        </fieldset>
+            </fieldset>
+        @endif
     @endif
 
     <div class="flex gap-3">

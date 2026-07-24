@@ -2,7 +2,11 @@
 
 namespace Modules\Accounting\Services\Accounting;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingPeriod;
+use Modules\Accounting\Models\JournalEntry;
+use Modules\Accounting\Models\StockMovement;
 
 class PeriodLockService
 {
@@ -65,5 +69,54 @@ class PeriodLockService
                 'is_locked' => false,
             ]
         );
+    }
+
+    /**
+     * Realign the opening cut-off to a new date.
+     *
+     * Moves the Opening period end_date AND re-dates every opening-tagged row
+     * (journal entries + opening stock movements) that sat on the old cut-off,
+     * so daily transactions dated after the new cut-off become postable. The
+     * locked state is never changed here. Idempotent — a no-op when the date is
+     * already aligned. Only touches Opening rows, so it stays safe even after
+     * daily entries exist.
+     */
+    public function realignCutoff(string $newCutoff): void
+    {
+        $period = $this->openingPeriod();
+
+        $old = Carbon::parse($period->end_date)->toDateString();
+        $new = Carbon::parse($newCutoff)->toDateString();
+
+        if ($old === $new) {
+            return;
+        }
+
+        DB::transaction(function () use ($period, $old, $new) {
+            JournalEntry::where('reference_type', 'Opening')
+                ->whereDate('date', $old)
+                ->update(['date' => $new]);
+
+            StockMovement::opening()
+                ->whereDate('date', $old)
+                ->update(['date' => $new]);
+
+            $period->update(['end_date' => $new]);
+        });
+    }
+
+    /**
+     * Owner recovery path: temporarily unlock, realign the cut-off to a new
+     * date, then re-lock — all audited via unlock_reason. Lets a shop that
+     * locked itself out of "today" self-heal from the UI, no console needed.
+     */
+    public function reopenAndSetCutoff(int $userId, string $newCutoff, string $reason): AccountingPeriod
+    {
+        return DB::transaction(function () use ($userId, $newCutoff, $reason) {
+            $this->unlockOpening($userId, $reason);
+            $this->realignCutoff($newCutoff);
+
+            return $this->lockOpening($userId);
+        });
     }
 }

@@ -8,12 +8,14 @@ use Modules\Accounting\Http\Requests\UpdateProductRequest;
 use Modules\Accounting\Models\Product;
 use Modules\Accounting\Models\ProductCategory;
 use Modules\Accounting\Models\Unit;
+use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Modules\Accounting\Services\Master\ProductService;
 
 class ProductController extends Controller
 {
     public function __construct(
         private ProductService $products,
+        private PeriodLockService $periodLock,
     ) {}
 
     public function index(): \Illuminate\View\View
@@ -89,6 +91,7 @@ class ProductController extends Controller
             'categories' => ProductCategory::whereNull('parent_id')
                 ->with('children')->orderBy('name_bn')->get(),
             'units' => Unit::where('is_active', true)->orderBy('name_bn')->get(),
+            'openingLocked' => $this->periodLock->isOpeningLocked(),
         ];
     }
 }

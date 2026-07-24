@@ -26,19 +26,23 @@
                 <label class="text-sm text-gray-600">{{ __('ui.customer.address') }}</label>
                 <input name="address" value="{{ old('address') }}" class="{{ $input }}">
             </div>
-            <fieldset class="border-t pt-4">
-                <legend class="text-sm font-medium text-gray-700">{{ __('ui.customer.opening_due') }}</legend>
-                <div class="grid grid-cols-2 gap-4 mt-2">
-                    <div>
-                        <label class="text-sm text-gray-600">{{ __('ui.customer.opening_due') }}</label>
-                        <input name="opening_amount" type="number" step="0.01" min="0" value="{{ old('opening_amount') }}" class="{{ $input }}">
+            @if ($openingLocked ?? false)
+                @include('shop._opening_locked_note')
+            @else
+                <fieldset class="border-t pt-4">
+                    <legend class="text-sm font-medium text-gray-700">{{ __('ui.customer.opening_due') }}</legend>
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label class="text-sm text-gray-600">{{ __('ui.customer.opening_due') }}</label>
+                            <input name="opening_amount" type="number" step="0.01" min="0" value="{{ old('opening_amount') }}" class="{{ $input }}">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600">{{ __('ui.customer.opening_date') }}</label>
+                            <input name="opening_date" type="date" value="{{ old('opening_date') }}" class="{{ $input }}">
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-sm text-gray-600">{{ __('ui.customer.opening_date') }}</label>
-                        <input name="opening_date" type="date" value="{{ old('opening_date') }}" class="{{ $input }}">
-                    </div>
-                </div>
-            </fieldset>
+                </fieldset>
+            @endif
             <div class="flex gap-3">
                 <button class="bg-gray-800 text-white rounded px-4 py-2 text-sm">{{ __('ui.common.save') }}</button>
                 <a href="{{ route('customers.index') }}" class="text-gray-500 px-4 py-2 text-sm">{{ __('ui.common.cancel') }}</a>

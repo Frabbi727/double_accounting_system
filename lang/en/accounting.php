@@ -23,7 +23,7 @@ return [
 
     'errors' => [
         'unbalanced' => 'Journal entry does not balance. Debit :debit, Credit :credit (difference :diff)',
-        'period_locked' => 'This date (:date) is locked. No entry can be posted.',
+        'period_locked' => 'This date (:date) falls before your business start date (the locked opening period), so no entry can be recorded here. The owner can fix it from the ‘Opening Balance’ page by setting the business start date.',
         'already_reversed' => 'This entry has already been reversed.',
         'zero_entry' => 'A zero-amount journal entry cannot be posted.',
         'line_both_sides' => 'Line #:line: a single line cannot have both a debit and a credit.',

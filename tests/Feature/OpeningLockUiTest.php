@@ -81,7 +81,8 @@ class OpeningLockUiTest extends TestCase
 
         $this->assertFalse(app(PeriodLockService::class)->isOpeningLocked());
 
-        $this->actingAs($owner)->post('/opening/lock')->assertRedirect(route('opening.index'));
+        $this->actingAs($owner)->post('/opening/lock', ['start_date' => now()->toDateString()])
+            ->assertRedirect(route('opening.index'));
 
         $this->assertTrue(app(PeriodLockService::class)->isOpeningLocked());
     }

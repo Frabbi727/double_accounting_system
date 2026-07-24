@@ -124,6 +124,28 @@ return [
         'confirm_recap' => 'Summary',
         'confirm_yes' => 'Confirm & Lock',
         'confirm_back' => 'Go back',
+
+        // Business start date (plain-language cut-off)
+        'start_date' => 'Business start date',
+        'start_date_label' => 'From which day does your daily bookkeeping start in this software?',
+        'start_date_help' => 'Everything before this day is your opening balance. Daily sales / purchases are recorded from this day onward. Usually set today’s date.',
+        'change_start_date' => 'Change business start date',
+        'change_start_date_help' => 'If transactions are blocked because of a wrong date, set the correct start day here. Opening records shift accordingly; the change is kept in the log.',
+        'change_start_date_reason' => 'Reason (optional)',
+        'change_start_date_btn' => 'Change date & re-lock',
+        'start_date_changed' => 'Business start date changed.',
+        'reopen_default_reason' => 'Business start date corrected',
+
+        // Setup ↔ business mode
+        'mode_setup' => '⚙️ Setup in progress',
+        'mode_setup_help' => 'You can add/edit all opening balances (cash, dues, stock) now. Lock below to start recording daily sales & purchases.',
+        'mode_business' => '✅ Business running',
+        'mode_business_help' => 'Daily bookkeeping is on. To add or fix an old opening due/stock, tap “Back to setup” below.',
+        'back_to_setup' => 'Back to setup',
+        'back_to_setup_help' => 'Need to add or fix an opening balance? Go back to setup — daily billing pauses meanwhile, and resumes once you lock again.',
+        'unlock_default_reason' => 'Reopened setup to add/fix opening balances',
+        'unlocked_for_edit' => 'Back in setup mode — add/fix opening balances, then lock again.',
+        'master_locked_note' => 'The business has already started, so an opening due/stock can’t be added directly now. Go to the ‘Opening Balance’ page and tap ‘Back to setup’ to add it.',
     ],
 
     'product' => [

@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Supplier;
+use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Modules\Accounting\Services\Master\SupplierService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Modules\Incentive\Models\PartyIncentive;
@@ -16,6 +17,7 @@ class SupplierController extends Controller
     public function __construct(
         private SupplierService $suppliers,
         private ReportService $reports,
+        private PeriodLockService $periodLock,
     ) {}
 
     public function index(): View
@@ -44,7 +46,9 @@ class SupplierController extends Controller
 
     public function create(): View
     {
-        return view('shop.supplier.create');
+        return view('shop.supplier.create', [
+            'openingLocked' => $this->periodLock->isOpeningLocked(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -56,6 +60,12 @@ class SupplierController extends Controller
             'opening_amount' => ['nullable', 'numeric', 'gt:0'],
             'opening_date' => ['nullable', 'date', 'before_or_equal:'.config('shop.cutoff_date')],
         ]);
+
+        // Business already started → opening dues can't be posted (locked date).
+        // Guide the owner instead of hitting a wall.
+        if (! empty($data['opening_amount']) && $this->periodLock->isOpeningLocked()) {
+            return back()->withInput()->with('warning', __('ui.opening.master_locked_note'));
+        }
 
         if (! empty($data['opening_amount'])) {
             $data['opening_items'] = [[

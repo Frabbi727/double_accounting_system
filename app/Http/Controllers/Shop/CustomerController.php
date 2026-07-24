@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Modules\Accounting\Http\Requests\StoreCustomerRequest;
 use Modules\Accounting\Models\Customer;
+use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Modules\Accounting\Services\Master\CustomerService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Modules\Incentive\Models\PartyIncentive;
@@ -14,6 +15,7 @@ class CustomerController extends Controller
     public function __construct(
         private CustomerService $customers,
         private ReportService $reports,
+        private PeriodLockService $periodLock,
     ) {}
 
     public function index(): \Illuminate\View\View
@@ -42,12 +44,19 @@ class CustomerController extends Controller
 
     public function create(): \Illuminate\View\View
     {
-        return view('shop.customer.create');
+        return view('shop.customer.create', [
+            'openingLocked' => $this->periodLock->isOpeningLocked(),
+        ]);
     }
 
     public function store(StoreCustomerRequest $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
+
+        // Business already started → opening dues can't be posted (locked date).
+        if (! empty($data['opening_amount'] ?? null) && $this->periodLock->isOpeningLocked()) {
+            return back()->withInput()->with('warning', __('ui.opening.master_locked_note'));
+        }
 
         // A single opening-due form field maps to one opening_items row.
         if (! empty($data['opening_amount'] ?? null)) {

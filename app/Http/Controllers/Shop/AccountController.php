@@ -53,7 +53,9 @@ class AccountController extends Controller
 
     public function create(): View
     {
-        return view('shop.account.create');
+        return view('shop.account.create', [
+            'openingLocked' => $this->periodLock->isOpeningLocked(),
+        ]);
     }
 
     /**
@@ -100,6 +102,11 @@ class AccountController extends Controller
             'subtype' => ['required', 'in:cash,bank,loan'],
             'opening_balance' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // Business already started → opening balance can't be posted (locked date).
+        if (! empty($data['opening_balance']) && $this->periodLock->isOpeningLocked()) {
+            return back()->withInput()->with('warning', __('ui.opening.master_locked_note'));
+        }
 
         // Cash/bank are assets; a loan is a liability.
         $data['type'] = $data['subtype'] === 'loan' ? 'liability' : 'asset';

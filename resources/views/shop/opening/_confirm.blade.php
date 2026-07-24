@@ -28,14 +28,26 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('opening.lock') }}" class="flex gap-3 justify-end pt-2">
+        <form method="POST" action="{{ route('opening.lock') }}" class="space-y-3 pt-2">
             @csrf
-            <button type="button" @click="confirming = false" class="text-gray-500 px-4 py-2 text-sm">
-                {{ __('ui.opening.confirm_back') }}
-            </button>
-            <button type="submit" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">
-                {{ __('ui.opening.confirm_yes') }}
-            </button>
+            {{-- Plain-language "cut-off": the day daily bookkeeping starts. --}}
+            <div class="rounded border p-3 space-y-1">
+                <label class="text-sm font-medium text-gray-700">{{ __('ui.opening.start_date_label') }}</label>
+                <input name="start_date" type="date" required
+                       value="{{ old('start_date', now()->toDateString()) }}"
+                       max="{{ now()->toDateString() }}"
+                       class="mt-1 block w-full rounded border-gray-300 shadow-sm text-sm">
+                <p class="text-xs text-gray-500">{{ __('ui.opening.start_date_help') }}</p>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" @click="confirming = false" class="text-gray-500 px-4 py-2 text-sm">
+                    {{ __('ui.opening.confirm_back') }}
+                </button>
+                <button type="submit" class="bg-green-600 text-white rounded px-4 py-2 text-sm hover:bg-green-700">
+                    {{ __('ui.opening.confirm_yes') }}
+                </button>
+            </div>
         </form>
     </div>
 </div>
