@@ -114,6 +114,17 @@
             <label class="text-sm text-gray-600">{{ __('ui.product.sale_price') }}</label>
             <input name="sale_price" type="number" step="0.01" min="0" value="{{ old('sale_price', $isEdit ? $product->sale_price : 0) }}" required class="{{ $input }}">
         </div>
+        @if ($isEdit)
+            @can('cost.view')
+                {{-- Buying price is a weighted-average cost maintained by CostingService
+                     on every stock IN — shown here for reference, never edited on this form. --}}
+                <div>
+                    <label class="text-sm text-gray-600">{{ __('ui.product.cost_price') }}</label>
+                    <input value="{{ number_format((float) $product->cost_price, 2) }}"
+                           disabled class="{{ $input }} bg-gray-100 text-gray-500">
+                </div>
+            @endcan
+        @endif
     </div>
 
     @if (! $isEdit)
