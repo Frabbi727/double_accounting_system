@@ -21,8 +21,10 @@ class RequireOpeningLocked
     public function handle(Request $request, Closure $next): Response
     {
         if (! $this->periodLock->isOpeningLocked()) {
+            // Setup isn't finished — guide the owner through the step-by-step
+            // wizard rather than dropping them on the advanced summary page.
             return redirect()
-                ->route('opening.index')
+                ->route('opening.setup')
                 ->with('warning', __('accounting.errors.opening_not_complete'));
         }
 

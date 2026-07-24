@@ -11,6 +11,7 @@ use App\Http\Controllers\Shop\ExpenseController;
 use App\Http\Controllers\Shop\ExportController;
 use App\Http\Controllers\Shop\IncentiveController;
 use App\Http\Controllers\Shop\OpeningController;
+use App\Http\Controllers\Shop\OpeningWizardController;
 use App\Http\Controllers\Shop\PaymentController;
 use App\Http\Controllers\Shop\ProductCategoryController;
 use App\Http\Controllers\Shop\ProductController;
@@ -51,6 +52,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/opening/lock', [OpeningController::class, 'lock'])->name('opening.lock');
         Route::post('/opening/reopen', [OpeningController::class, 'reopen'])->name('opening.reopen');
         Route::post('/opening/unlock', [OpeningController::class, 'unlock'])->name('opening.unlock');
+
+        // Guided step-by-step opening-balance setup (for first-time shopkeepers).
+        Route::get('/opening/setup', [OpeningWizardController::class, 'index'])->name('opening.setup');
+        Route::post('/opening/setup/cash', [OpeningWizardController::class, 'storeCash'])->name('opening.setup.cash');
+        Route::post('/opening/setup/suppliers', [OpeningWizardController::class, 'storeSupplier'])->name('opening.setup.suppliers');
+        Route::post('/opening/setup/customers', [OpeningWizardController::class, 'storeCustomer'])->name('opening.setup.customers');
+        Route::post('/opening/setup/products', [OpeningWizardController::class, 'storeProduct'])->name('opening.setup.products');
+        Route::post('/opening/setup/assets', [OpeningWizardController::class, 'storeAsset'])->name('opening.setup.assets');
+        Route::get('/opening/setup/{step}', [OpeningWizardController::class, 'step'])->name('opening.setup.step');
     });
 
     // Master data (owner + accountant).

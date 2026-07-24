@@ -18,11 +18,17 @@ class DashboardController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index(Request $request): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
         $user = $request->user();
         if (!$user) {
             abort(401);
+        }
+
+        // First-run: opening balances not locked yet → guide the owner into the
+        // step-by-step setup wizard instead of showing an empty dashboard.
+        if (! $this->periodLock->isOpeningLocked() && $user->can('opening.manage')) {
+            return redirect()->route('opening.setup');
         }
 
         $today = now()->toDateString();

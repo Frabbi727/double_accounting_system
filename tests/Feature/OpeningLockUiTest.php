@@ -65,9 +65,9 @@ class OpeningLockUiTest extends TestCase
     {
         $owner = $this->owner();
 
-        // Not locked yet → redirected to the opening screen.
+        // Not locked yet → guided into the step-by-step setup wizard.
         $this->actingAs($owner)->get('/sales/create')
-            ->assertRedirect(route('opening.index'));
+            ->assertRedirect(route('opening.setup'));
 
         // Lock it, then the sale screen opens.
         app(PeriodLockService::class)->lockOpening($owner->id);

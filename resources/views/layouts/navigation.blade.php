@@ -67,7 +67,13 @@
                 <p x-show="!collapsed" class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">{{ __('ui.nav_group.master') }}</p>
 
                 @can('opening.manage')
-                    <a href="{{ route('opening.index') }}" class="{{ $linkBase }} {{ request()->routeIs('opening.*') ? $linkActive : $linkIdle }}">
+                    @unless (app(\Modules\Accounting\Services\Accounting\PeriodLockService::class)->isOpeningLocked())
+                        <a href="{{ route('opening.setup') }}" class="{{ $linkBase }} {{ request()->routeIs('opening.setup') ? $linkActive : $linkIdle }} ring-1 ring-amber-300 bg-amber-50">
+                            <svg class="w-5 h-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.opening.wizard.title') }}</span>
+                        </a>
+                    @endunless
+                    <a href="{{ route('opening.index') }}" class="{{ $linkBase }} {{ request()->routeIs('opening.index') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.opening') }}</span>
                     </a>

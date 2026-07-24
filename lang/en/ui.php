@@ -146,6 +146,94 @@ return [
         'unlock_default_reason' => 'Reopened setup to add/fix opening balances',
         'unlocked_for_edit' => 'Back in setup mode — add/fix opening balances, then lock again.',
         'master_locked_note' => 'The business has already started, so an opening due/stock can’t be added directly now. Go to the ‘Opening Balance’ page and tap ‘Back to setup’ to add it.',
+
+        // Guided setup wizard
+        'wizard' => [
+            'title' => 'Set Up Opening Balance',
+            'step_counter' => 'Step :current of :total',
+            'advanced_link' => 'Advanced view',
+            'back' => 'Back',
+            'next' => 'Next step',
+            'skip' => 'Skip for now',
+            'start' => 'Start setup',
+            'save' => 'Save',
+            'add' => 'Add',
+            'added_count' => 'Added (:count)',
+
+            // Step names (checklist)
+            'step' => [
+                'welcome' => 'Welcome',
+                'cash' => 'Cash & Bank',
+                'suppliers' => 'Supplier Dues',
+                'customers' => 'Customer Dues',
+                'products' => 'Stock',
+                'assets' => 'Assets',
+                'review' => 'Review & Lock',
+            ],
+
+            // Welcome
+            'welcome_title' => "Let's set up your opening balance",
+            'welcome_help' => 'Before you record daily sales and purchases, the software needs to know where your shop stands today — cash, dues, stock and assets. We will do it one step at a time.',
+            'welcome_note' => 'Take your time. Nothing is final until you lock at the last step, and you can go back to any step any time.',
+            'intro' => [
+                'cash' => 'How much cash is in hand and in your bank/mobile accounts.',
+                'suppliers' => 'People you owe money to right now.',
+                'customers' => 'People who owe money to your shop right now.',
+                'products' => 'The stock you already have, with its cost.',
+                'assets' => 'Things you own — furniture, fridge, machines, etc.',
+            ],
+
+            // Cash step
+            'cash_title' => 'Cash & bank balance',
+            'cash_help' => 'Enter how much money you have right now in each account. Leave blank if none.',
+            'cash_none' => 'No cash/bank account found. Add one first.',
+            'cash_add_account' => 'Add a new bank / loan account',
+            'cash_reason' => 'Opening balance (setup wizard)',
+            'loan_section_title' => 'Loans (money you owe)',
+            'loan_section_help' => 'If your shop has taken any loan, enter how much you still owe on each.',
+
+            // Common party fields
+            'party_name' => 'Name',
+            'phone' => 'Phone (optional)',
+            'owed_amount' => 'You owe (৳)',
+            'due_amount' => 'They owe (৳)',
+
+            // Suppliers step
+            'suppliers_title' => 'Whom do you owe money?',
+            'suppliers_help' => 'Add each supplier your shop currently owes money to, with the amount. Skip if none.',
+            'suppliers_empty' => 'No supplier dues added yet.',
+
+            // Customers step
+            'customers_title' => 'Who owes money to your shop?',
+            'customers_help' => 'Add each customer who currently owes your shop money, with the amount. Skip if none.',
+            'customers_empty' => 'No customer dues added yet.',
+
+            // Products step
+            'products_title' => 'Your current stock',
+            'products_help' => 'Add each product you already have in stock, with its buying cost and selling price.',
+            'products_empty' => 'No product stock added yet.',
+            'products_cost_note' => 'Cost = what you paid to buy one unit. It is used to calculate profit.',
+            'product_name' => 'Product name',
+            'qty' => 'Quantity',
+            'cost' => 'Cost (৳)',
+            'sale_price' => 'Sale price (৳)',
+
+            // Assets step
+            'assets_title' => 'Things your shop owns',
+            'assets_help' => 'Add fixed assets you already own — furniture, fridge, machinery, etc. — with their current value.',
+            'assets_empty' => 'No assets added yet.',
+            'assets_no_category' => 'You need at least one asset category first.',
+            'assets_add_category' => 'Add asset category',
+            'asset_category' => 'Type',
+            'asset_name' => 'Name',
+            'asset_value' => 'Value (৳)',
+
+            // Review step
+            'review_title' => 'Review & lock',
+            'review_help' => 'Check the summary below. When everything looks right, lock it to start daily bookkeeping.',
+            'review_lock_note' => 'Once locked, daily sales and purchases begin. You can still reopen setup later if you need to fix something.',
+            'finish_lock' => 'Everything is correct — Lock',
+        ],
     ],
 
     'product' => [
