@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Support\ReturnPolicy;
 use App\Support\ShopProfile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,7 @@ class ShopProfileController extends Controller
             'address' => ShopProfile::address(),
             'phone' => ShopProfile::phone(),
             'logoUrl' => ShopProfile::logoUrl(),
+            'returnDiscountPolicy' => ReturnPolicy::discountPolicy(),
         ]);
     }
 
@@ -34,11 +36,15 @@ class ShopProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'remove_logo' => ['nullable', 'boolean'],
+            'return_discount_policy' => ['nullable', 'in:'.implode(',', ReturnPolicy::options())],
         ]);
 
         Setting::put('shop.name', $data['name']);
         Setting::put('shop.address', $data['address'] ?? null);
         Setting::put('shop.phone', $data['phone'] ?? null);
+        if (! empty($data['return_discount_policy'])) {
+            Setting::put(ReturnPolicy::KEY, $data['return_discount_policy']);
+        }
 
         if ($request->boolean('remove_logo') || $request->hasFile('logo')) {
             $this->deleteExistingLogo();

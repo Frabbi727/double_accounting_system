@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             ProductCategorySeeder::class,
             UnitSeeder::class,
+            AssetCategorySeeder::class,
         ]);
 
         $demo = [

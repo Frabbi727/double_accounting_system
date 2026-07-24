@@ -12,6 +12,8 @@ return [
         'customers' => 'কাস্টমার',
         'suppliers' => 'সাপ্লায়ার',
         'accounts' => 'অ্যাকাউন্ট',
+        'assets' => 'সম্পদ',
+        'asset_categories' => 'সম্পদের ক্যাটাগরি',
         'sales' => 'বিক্রয়',
         'purchases' => 'ক্রয়',
         'reports' => 'রিপোর্ট',
@@ -444,6 +446,7 @@ return [
         'SaleCOGS'         => 'বিক্রয়ের খরচ',
         'SaleReturn'       => 'বিক্রয় ফেরত',
         'SaleReturnCOGS'   => 'বিক্রয় ফেরত (খরচ)',
+        'SaleReturnCancel' => 'বিক্রয় ফেরত বাতিল',
         'Purchase'         => 'ক্রয়',
         'PurchaseReturn'   => 'ক্রয় ফেরত',
         'PaymentIn'        => 'কাস্টমার থেকে গৃহীত',
@@ -455,6 +458,7 @@ return [
         'IncentiveIn'      => 'ইনসেন্টিভ গৃহীত',
         'IncentiveOut'     => 'ইনসেন্টিভ প্রদত্ত',
         'StockLoss'        => 'স্টক ক্ষতি/নষ্ট',
+        'AssetPurchase'    => 'সম্পদ ক্রয়',
     ],
 
     'return' => [

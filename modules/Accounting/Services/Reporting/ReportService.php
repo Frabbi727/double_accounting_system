@@ -517,6 +517,13 @@ class ReportService
 
         $docTypes = $isCustomer ? ['Sale', 'SaleReturn'] : ['Purchase', 'PurchaseReturn'];
 
+        // Unpaid (credit-mode) asset acquisitions credit AP 2010, keyed to the
+        // supplier via assets.supplier_id — same document pattern as Purchase.
+        $assetIds = $isCustomer ? [] : DB::table('assets')
+            ->where('supplier_id', $id)
+            ->where('payment_mode', 'credit')
+            ->pluck('id')->all();
+
         // Entries keyed directly to the party id (not a document): receipts and
         // payments, plus any incentive/rebate settled against the party's due
         // (IncentiveOut lowers a customer's receivable; IncentiveIn/RebatePayable
@@ -528,12 +535,16 @@ class ReportService
         return DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->where('l.account_id', $controlId)
-            ->where(function ($q) use ($docTypes, $docIds, $partyKeyedTypes, $id) {
+            ->where(function ($q) use ($docTypes, $docIds, $partyKeyedTypes, $id, $assetIds) {
                 $q->where(function ($w) use ($docTypes, $docIds) {
                     $w->whereIn('e.reference_type', $docTypes);
                     empty($docIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $docIds);
                 })->orWhere(function ($w) use ($partyKeyedTypes, $id) {
                     $w->whereIn('e.reference_type', $partyKeyedTypes)->where('e.reference_id', $id);
+                })->orWhere(function ($w) use ($assetIds) {
+                    // Credit-mode asset purchases (keyed to asset id, not a party id).
+                    $w->where('e.reference_type', 'AssetPurchase');
+                    empty($assetIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $assetIds);
                 });
             })
             ->orderBy('e.date')->orderBy('e.id')

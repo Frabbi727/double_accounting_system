@@ -140,16 +140,18 @@ class DailyTransactionUiTest extends TestCase
         // Salesperson can't reach expenses, payments or returns.
         $this->actingAs($sales)->get('/expenses/create')->assertForbidden();
         $this->actingAs($sales)->get('/payments/create')->assertForbidden();
-        $this->actingAs($sales)->get('/returns/sale')->assertForbidden();
+        $this->actingAs($sales)->get('/returns/create')->assertForbidden();
 
-        // Accountant can do expenses/payments but not returns (owner-only).
+        // Accountant can do expenses/payments AND product returns (return.manage),
+        // but not the owner-only purchase return / stock loss corrections.
         $this->actingAs($acc)->get('/expenses/create')->assertOk();
         $this->actingAs($acc)->get('/payments/create')->assertOk();
-        $this->actingAs($acc)->get('/returns/sale')->assertForbidden();
+        $this->actingAs($acc)->get('/returns/create')->assertOk();
+        $this->actingAs($acc)->get('/returns/purchase')->assertForbidden();
 
         // Owner can reach returns and stock loss.
         $owner = $this->userWithRole('owner');
-        $this->actingAs($owner)->get('/returns/sale')->assertOk();
+        $this->actingAs($owner)->get('/returns/create')->assertOk();
         $this->actingAs($owner)->get('/returns/purchase')->assertOk();
         $this->actingAs($owner)->get('/stock-loss')->assertOk();
     }

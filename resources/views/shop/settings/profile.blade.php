@@ -39,6 +39,15 @@
                 @error('logo')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
+            <div class="border-t pt-4">
+                <label class="text-sm text-gray-600">{{ __('return.policy_label') }}</label>
+                <select name="return_discount_policy" class="{{ $input }}">
+                    <option value="ignore" @selected(old('return_discount_policy', $returnDiscountPolicy) === 'ignore')>{{ __('return.policy_ignore') }}</option>
+                    <option value="proportional" @selected(old('return_discount_policy', $returnDiscountPolicy) === 'proportional')>{{ __('return.policy_proportional') }}</option>
+                </select>
+                <p class="text-xs text-gray-400 mt-1">{{ __('return.policy_hint') }}</p>
+            </div>
+
             <div class="flex gap-3">
                 <button class="bg-gray-800 text-white rounded px-4 py-2 text-sm">{{ __('ui.shop_profile.save') }}</button>
                 <a href="{{ route('dashboard') }}" class="text-gray-500 px-4 py-2 text-sm">{{ __('ui.common.cancel') }}</a>

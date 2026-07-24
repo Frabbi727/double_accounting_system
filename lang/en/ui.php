@@ -12,6 +12,8 @@ return [
         'customers' => 'Customers',
         'suppliers' => 'Suppliers',
         'accounts' => 'Accounts',
+        'assets' => 'Assets',
+        'asset_categories' => 'Asset Categories',
         'sales' => 'Sales',
         'purchases' => 'Purchases',
         'reports' => 'Reports',
@@ -444,6 +446,7 @@ return [
         'SaleCOGS'         => 'Cost of sale',
         'SaleReturn'       => 'Sale return',
         'SaleReturnCOGS'   => 'Sale return (cost)',
+        'SaleReturnCancel' => 'Sale return cancelled',
         'Purchase'         => 'Purchase',
         'PurchaseReturn'   => 'Purchase return',
         'PaymentIn'        => 'Received from customer',
@@ -455,6 +458,7 @@ return [
         'IncentiveIn'      => 'Incentive received',
         'IncentiveOut'     => 'Incentive paid',
         'StockLoss'        => 'Stock loss/damage',
+        'AssetPurchase'    => 'Asset acquisition',
     ],
 
     'return' => [

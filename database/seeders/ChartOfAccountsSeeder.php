@@ -12,7 +12,10 @@ class ChartOfAccountsSeeder extends Seeder
      * application (OpeningEntryService, SaleService, PurchaseService).
      * They must never be renamed, re-coded or deleted.
      *
-     * Columns: [code, name_bn, name_en, type, subtype, is_system]
+     * Columns: [code, name_bn, name_en, type, subtype, is_system, parent_code?]
+     *
+     * The optional 7th element is a parent account's code; parent_id is resolved
+     * in a second pass after every account exists (so order does not matter).
      */
     public function run(): void
     {
@@ -23,6 +26,18 @@ class ChartOfAccountsSeeder extends Seeder
             ['1021', 'ব্যাংক অ্যাকাউন্ট',             'Bank Account',        'asset',     'bank',       false],
             ['1030', 'কাস্টমার বাকি (AR)',           'Accounts Receivable', 'asset',     'receivable', true],
             ['1040', 'ইনভেন্টরি (মজুদ)',             'Inventory',           'asset',     'inventory',  true],
+            ['1070', 'অগ্রিম প্রদান',                 'Advance Payments',    'asset',     'other',      true],
+
+            // ---- Fixed Assets (capitalized purchases via the Asset module) ----
+            // subtype stays 'other' — the accounts DB enum has no fixed_asset value;
+            // grouping is by the 1500 parent, not the subtype.
+            ['1500', 'স্থায়ী সম্পদ',                  'Fixed Assets',            'asset', 'other', true],
+            ['1510', 'আসবাবপত্র',                     'Furniture & Fixtures',    'asset', 'other', false, '1500'],
+            ['1520', 'অফিস সরঞ্জাম',                  'Office Equipment',        'asset', 'other', false, '1500'],
+            ['1530', 'কম্পিউটার ও ইলেকট্রনিক্স',      'Computer & Electronics',  'asset', 'other', false, '1500'],
+            ['1540', 'যানবাহন',                       'Vehicles',                'asset', 'other', false, '1500'],
+            ['1550', 'জমি ও ভবন',                     'Land & Building',         'asset', 'other', false, '1500'],
+            ['1560', 'অন্যান্য স্থায়ী সম্পদ',          'Other Fixed Assets',      'asset', 'other', false, '1500'],
 
             // ---- Liabilities ----
             ['2000', 'দায়',                          'Liabilities',         'liability', 'other',      true],
@@ -39,6 +54,7 @@ class ChartOfAccountsSeeder extends Seeder
             ['4010', 'বিক্রয় আয়',                   'Sales Revenue',       'income',    'other',      true],
             ['4020', 'বিক্রয় ছাড়',                  'Sales Discount',      'income',    'other',      true],
             ['4030', 'ইনসেন্টিভ আয়',                'Incentive Income',    'income',    'other',      false],
+            ['4040', 'ফেরত কর্তন আয়',              'Return Deduction Income', 'income', 'other',     true],
 
             // ---- Expenses ----
             ['5000', 'খরচ',                          'Expenses',            'expense',   'other',      true],
@@ -56,7 +72,9 @@ class ChartOfAccountsSeeder extends Seeder
             ['5900', 'অন্যান্য খরচ',                 'Other Expenses',      'expense',   'other',      false],
         ];
 
-        foreach ($accounts as [$code, $nameBn, $nameEn, $type, $subtype, $isSystem]) {
+        foreach ($accounts as $row) {
+            [$code, $nameBn, $nameEn, $type, $subtype, $isSystem] = $row;
+
             Account::updateOrCreate(
                 ['code' => $code],
                 [
@@ -68,6 +86,16 @@ class ChartOfAccountsSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
+        }
+
+        // Second pass: link children to their parent account now that all exist.
+        foreach ($accounts as $row) {
+            $parentCode = $row[6] ?? null;
+            if ($parentCode === null) {
+                continue;
+            }
+            $parentId = Account::where('code', $parentCode)->value('id');
+            Account::where('code', $row[0])->update(['parent_id' => $parentId]);
         }
     }
 }

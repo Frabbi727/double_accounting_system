@@ -1,0 +1,88 @@
+<?php
+
+return [
+
+    'list_title' => 'Product Returns',
+    'details_title' => 'Return Details',
+    'new' => 'New Return',
+    'select_sale' => 'Select an invoice',
+    'load' => 'Load',
+    'save' => 'Save Return',
+
+    'return_no' => 'Return No',
+    'return_date' => 'Date & Time',
+    'customer' => 'Customer',
+    'walk_in' => 'Walk-in',
+    'invoice_no' => 'Invoice No',
+    'total_items' => 'Items',
+    'total_refund' => 'Refund',
+    'status' => 'Status',
+    'status_completed' => 'Completed',
+    'status_cancelled' => 'Cancelled',
+    'created_by' => 'Created by',
+    'reason' => 'Reason',
+    'notes' => 'Notes',
+
+    'product' => 'Product',
+    'sold_qty' => 'Sold',
+    'returnable' => 'Returnable',
+    'returned_qty' => 'Return qty',
+    'unit_price' => 'Unit price',
+    'returned_amount' => 'Returned amount',
+    'already_returned' => 'Already returned',
+
+    'deduction' => 'Deduction',
+    'deduction_type' => 'Deduction type',
+    'deduction_value' => 'Deduction value',
+    'deduction_none' => 'None',
+    'deduction_fixed' => 'Fixed amount',
+    'deduction_percent' => 'Percentage (%)',
+    'final_refund' => 'Final refund',
+    'refund' => 'Refund now',
+    'refund_account' => 'Refund account',
+
+    'accounting_entries' => 'Accounting entries',
+    'inventory_movements' => 'Inventory movements',
+    'movement' => 'Movement',
+    'movement_in' => 'Restocked',
+    'movement_out' => 'Removed',
+    'qty' => 'Qty',
+    'voucher_no' => 'Voucher',
+    'account' => 'Account',
+    'debit' => 'Debit',
+    'credit' => 'Credit',
+
+    'discount_warning' => 'This invoice has a discount. Refund policy in effect:',
+    'proportional_note' => 'The invoice discount will be adjusted proportionally when saved; the final refund may be a little lower than shown.',
+    'policy_label' => 'Return discount policy',
+    'policy_hint' => 'How a return treats the original invoice discount.',
+    'policy_ignore' => 'Ignore discount (refund at list price)',
+    'policy_proportional' => 'Adjust discount proportionally',
+
+    'review' => 'Review & save',
+    'confirm_title' => 'Confirm this return',
+    'confirm_intro' => 'Please check the details below. On save, the stock is restocked and the accounting entries are posted.',
+    'confirm_refund_now' => 'Refund now',
+    'confirm_to_receivable' => 'Adjusted against customer due',
+    'confirm_back' => 'Go back',
+    'confirm_yes' => 'Confirm & save',
+    'no_reason' => '—',
+
+    'cancel' => 'Cancel return',
+    'cancel_reason' => 'Cancellation reason',
+    'confirm_cancel' => 'Cancel this return? The accounting entries will be reversed and the goods removed from stock.',
+    'cancelled_banner' => 'This return was cancelled by :by on :at.',
+
+    'entry' => [
+        'revenue' => 'Return :no — invoice :invoice',
+        'cogs' => 'Return :no (cost) — invoice :invoice',
+    ],
+
+    'errors' => [
+        'no_items' => 'A return must have at least one item.',
+        'exceeds_returnable' => 'The return quantity exceeds what can still be returned (:returnable remaining).',
+        'deduction_exceeds' => 'The deduction cannot be greater than the returned amount.',
+        'refund_exceeds' => 'The refund cannot exceed the final refund amount.',
+        'not_cancellable' => 'Only a completed return can be cancelled.',
+    ],
+];

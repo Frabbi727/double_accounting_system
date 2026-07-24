@@ -62,7 +62,7 @@
         </div>
 
         {{-- মাস্টার ডেটা --}}
-        @canany(['master.manage', 'opening.manage'])
+        @canany(['master.manage', 'opening.manage', 'asset.manage'])
             <div class="space-y-1">
                 <p x-show="!collapsed" class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">{{ __('ui.nav_group.master') }}</p>
 
@@ -93,6 +93,17 @@
                     <a href="{{ route('accounts.index') }}" class="{{ $linkBase }} {{ request()->routeIs('accounts.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.accounts') }}</span>
+                    </a>
+                    <a href="{{ route('asset-categories.index') }}" class="{{ $linkBase }} {{ request()->routeIs('asset-categories.*') ? $linkActive : $linkIdle }}">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.41.59l7 7a2 2 0 010 2.82l-5 5a2 2 0 01-2.82 0l-7-7A2 2 0 013 11V6a3 3 0 013-3z"/></svg>
+                        <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.asset_categories') }}</span>
+                    </a>
+                @endcan
+
+                @can('asset.manage')
+                    <a href="{{ route('assets.index') }}" class="{{ $linkBase }} {{ request()->routeIs('assets.*') ? $linkActive : $linkIdle }}">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.assets') }}</span>
                     </a>
                 @endcan
             </div>
@@ -139,11 +150,14 @@
                     </a>
                 @endcan
 
-                @can('entry.delete')
-                    <a href="{{ route('returns.sale') }}" class="{{ $linkBase }} {{ request()->routeIs('returns.*') ? $linkActive : $linkIdle }}">
+                @can('return.manage')
+                    <a href="{{ route('returns.index') }}" class="{{ $linkBase }} {{ request()->routeIs('returns.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav_more.returns') }}</span>
                     </a>
+                @endcan
+
+                @can('entry.delete')
                     <a href="{{ route('rebates.index') }}" class="{{ $linkBase }} {{ request()->routeIs('rebates.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav_more.rebate') }}</span>

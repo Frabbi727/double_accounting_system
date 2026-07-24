@@ -1,0 +1,88 @@
+<?php
+
+return [
+
+    'list_title' => 'পণ্য ফেরত',
+    'details_title' => 'ফেরতের বিবরণ',
+    'new' => 'নতুন ফেরত',
+    'select_sale' => 'একটি ইনভয়েস নির্বাচন করুন',
+    'load' => 'লোড',
+    'save' => 'ফেরত সংরক্ষণ',
+
+    'return_no' => 'ফেরত নং',
+    'return_date' => 'তারিখ ও সময়',
+    'customer' => 'কাস্টমার',
+    'walk_in' => 'নগদ ক্রেতা',
+    'invoice_no' => 'ইনভয়েস নং',
+    'total_items' => 'পণ্য',
+    'total_refund' => 'ফেরত',
+    'status' => 'অবস্থা',
+    'status_completed' => 'সম্পন্ন',
+    'status_cancelled' => 'বাতিল',
+    'created_by' => 'তৈরি করেছেন',
+    'reason' => 'কারণ',
+    'notes' => 'নোট',
+
+    'product' => 'পণ্য',
+    'sold_qty' => 'বিক্রিত',
+    'returnable' => 'ফেরতযোগ্য',
+    'returned_qty' => 'ফেরত পরিমাণ',
+    'unit_price' => 'একক দাম',
+    'returned_amount' => 'ফেরত মূল্য',
+    'already_returned' => 'ইতিমধ্যে ফেরত',
+
+    'deduction' => 'কর্তন',
+    'deduction_type' => 'কর্তনের ধরন',
+    'deduction_value' => 'কর্তনের পরিমাণ',
+    'deduction_none' => 'নেই',
+    'deduction_fixed' => 'নির্দিষ্ট পরিমাণ',
+    'deduction_percent' => 'শতকরা (%)',
+    'final_refund' => 'চূড়ান্ত ফেরত',
+    'refund' => 'এখন ফেরত',
+    'refund_account' => 'ফেরত অ্যাকাউন্ট',
+
+    'accounting_entries' => 'হিসাব এন্ট্রি',
+    'inventory_movements' => 'স্টক গতিবিধি',
+    'movement' => 'গতিবিধি',
+    'movement_in' => 'স্টকে ফেরত',
+    'movement_out' => 'স্টক থেকে সরানো',
+    'qty' => 'পরিমাণ',
+    'voucher_no' => 'ভাউচার',
+    'account' => 'অ্যাকাউন্ট',
+    'debit' => 'ডেবিট',
+    'credit' => 'ক্রেডিট',
+
+    'discount_warning' => 'এই ইনভয়েসে ছাড় আছে। কার্যকর ফেরত নীতি:',
+    'proportional_note' => 'সংরক্ষণের সময় ইনভয়েস ছাড় আনুপাতিকভাবে সমন্বয় করা হবে; চূড়ান্ত ফেরত এখানে দেখানো পরিমাণের চেয়ে কিছুটা কম হতে পারে।',
+    'policy_label' => 'ফেরত ছাড় নীতি',
+    'policy_hint' => 'ফেরতের সময় মূল ইনভয়েস ছাড় কীভাবে বিবেচনা করা হবে।',
+    'policy_ignore' => 'ছাড় উপেক্ষা করুন (তালিকা মূল্যে ফেরত)',
+    'policy_proportional' => 'ছাড় আনুপাতিকভাবে সমন্বয় করুন',
+
+    'review' => 'যাচাই করে সংরক্ষণ',
+    'confirm_title' => 'এই ফেরত নিশ্চিত করুন',
+    'confirm_intro' => 'নিচের বিবরণ যাচাই করুন। সংরক্ষণ করলে পণ্য স্টকে ফেরত যাবে এবং হিসাব এন্ট্রি পোস্ট হবে।',
+    'confirm_refund_now' => 'এখন ফেরত',
+    'confirm_to_receivable' => 'কাস্টমারের বাকির সাথে সমন্বয়',
+    'confirm_back' => 'ফিরে যান',
+    'confirm_yes' => 'নিশ্চিত করে সংরক্ষণ',
+    'no_reason' => '—',
+
+    'cancel' => 'ফেরত বাতিল',
+    'cancel_reason' => 'বাতিলের কারণ',
+    'confirm_cancel' => 'এই ফেরত বাতিল করবেন? হিসাব এন্ট্রি উল্টে যাবে এবং পণ্য স্টক থেকে সরানো হবে।',
+    'cancelled_banner' => 'এই ফেরতটি :by কর্তৃক :at তারিখে বাতিল করা হয়েছে।',
+
+    'entry' => [
+        'revenue' => 'ফেরত :no — ইনভয়েস :invoice',
+        'cogs' => 'ফেরত :no (খরচ) — ইনভয়েস :invoice',
+    ],
+
+    'errors' => [
+        'no_items' => 'ফেরতে অন্তত একটি পণ্য থাকতে হবে।',
+        'exceeds_returnable' => 'ফেরত পরিমাণ ফেরতযোগ্য পরিমাণের বেশি (:returnable বাকি)।',
+        'deduction_exceeds' => 'কর্তন ফেরত মূল্যের চেয়ে বেশি হতে পারবে না।',
+        'refund_exceeds' => 'ফেরত চূড়ান্ত ফেরত পরিমাণের বেশি হতে পারবে না।',
+        'not_cancellable' => 'শুধুমাত্র সম্পন্ন ফেরত বাতিল করা যাবে।',
+    ],
+];

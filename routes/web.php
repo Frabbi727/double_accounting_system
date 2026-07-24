@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\AccountController;
+use App\Http\Controllers\Shop\AssetCategoryController;
+use App\Http\Controllers\Shop\AssetController;
 use App\Http\Controllers\Shop\BackupController;
 use App\Http\Controllers\Shop\CustomerController;
 use App\Http\Controllers\Shop\DashboardController;
@@ -16,8 +18,8 @@ use App\Http\Controllers\Shop\PurchaseController;
 use App\Http\Controllers\Shop\PurchaseReturnController;
 use App\Http\Controllers\Shop\RebateController;
 use App\Http\Controllers\Shop\ReportController;
+use App\Http\Controllers\Shop\ReturnController;
 use App\Http\Controllers\Shop\SaleController;
-use App\Http\Controllers\Shop\SaleReturnController;
 use App\Http\Controllers\Shop\StockAdjustmentController;
 use App\Http\Controllers\Shop\ShopProfileController;
 use App\Http\Controllers\Shop\SupplierController;
@@ -78,6 +80,27 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/accounts/create', [AccountController::class, 'create'])->name('accounts.create');
         Route::get('/accounts/{account}/statement', [AccountController::class, 'statement'])->name('accounts.statement');
         Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
+
+        // Asset categories (each maps to a fixed-asset chart account).
+        Route::get('/asset-categories', [AssetCategoryController::class, 'index'])->name('asset-categories.index');
+        Route::post('/asset-categories', [AssetCategoryController::class, 'store'])->name('asset-categories.store');
+        Route::delete('/asset-categories/{asset_category}', [AssetCategoryController::class, 'destroy'])->name('asset-categories.destroy');
+    });
+
+    // Asset management — NOT behind opening.locked, so opening/already-owned assets
+    // can be entered during initial setup. Post-lock, the ledger rejects opening dates.
+    Route::middleware('can:asset.manage')->group(function () {
+        Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
+        Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
+        Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
+        Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show')->whereNumber('asset');
+        Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit')->whereNumber('asset');
+        Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update')->whereNumber('asset');
+    });
+
+    // Disposing an asset reverses its entry — owner-only.
+    Route::middleware('can:entry.delete')->group(function () {
+        Route::post('/assets/{asset}/dispose', [AssetController::class, 'dispose'])->name('assets.dispose')->whereNumber('asset');
     });
 
     // Sales — needs sale.create and a locked opening period.
@@ -129,10 +152,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/incentives', [IncentiveController::class, 'store'])->name('incentives.store');
     });
 
+    // Product returns (owner + accountant). Cancel is owner-only (below).
+    Route::middleware(['can:return.manage', 'opening.locked'])->group(function () {
+        Route::get('/returns', [ReturnController::class, 'index'])->name('returns.index');
+        Route::get('/returns/create', [ReturnController::class, 'create'])->name('returns.create');
+        Route::post('/returns', [ReturnController::class, 'store'])->name('returns.store');
+        Route::get('/returns/{return}', [ReturnController::class, 'show'])->name('returns.show')->whereNumber('return');
+    });
+
     // Returns & stock adjustments (owner only — corrections, §3.1).
     Route::middleware(['can:entry.delete', 'opening.locked'])->group(function () {
-        Route::get('/returns/sale', [SaleReturnController::class, 'create'])->name('returns.sale');
-        Route::post('/returns/sale', [SaleReturnController::class, 'store'])->name('returns.sale.store');
+        Route::post('/returns/{return}/cancel', [ReturnController::class, 'cancel'])->name('returns.cancel')->whereNumber('return');
 
         Route::get('/returns/purchase', [PurchaseReturnController::class, 'create'])->name('returns.purchase');
         Route::post('/returns/purchase', [PurchaseReturnController::class, 'store'])->name('returns.purchase.store');

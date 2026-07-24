@@ -27,6 +27,8 @@ class RolesAndPermissionsSeeder extends Seeder
         'cost.view',        // see cost price & profit  (owner + accountant only)
         'report.view',      // see reports
         'master.manage',    // add/edit products, customers, suppliers, accounts
+        'return.manage',    // create product returns    (owner + accountant)
+        'asset.manage',     // add/manage fixed assets   (owner + accountant)
         'entry.delete',     // reverse/correct entries   (owner only)
         'user.manage',      // add/remove users          (owner only)
         'opening.manage',   // enter/lock opening balances (owner only)
@@ -37,7 +39,8 @@ class RolesAndPermissionsSeeder extends Seeder
         'owner' => self::PERMISSIONS,   // all
         'accountant' => [
             'sale.create', 'purchase.create', 'expense.create', 'payment.manage',
-            'stock.view', 'cost.view', 'report.view', 'master.manage',
+            'stock.view', 'cost.view', 'report.view', 'master.manage', 'return.manage',
+            'asset.manage',
         ],
         'salesperson' => [
             'sale.create', 'stock.view',
