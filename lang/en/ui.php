@@ -154,6 +154,16 @@ return [
         'below_cost' => 'Below cost',
         'need_customer_for_credit' => 'Select a customer for a credit (unpaid) sale',
         'add_customer' => 'New Customer',
+        'walk_in' => 'Walk-in (cash)',
+        'disc_flat' => '৳ Fixed',
+        'disc_pct' => '% Percent',
+        'subtotal' => 'Subtotal',
+        'line_total' => 'Total',
+        'due' => 'Due',
+        'confirm_title' => 'Confirm Sale',
+        'confirm_intro' => 'Review the amounts before saving — confirm if everything is correct.',
+        'confirm_back' => 'Go Back',
+        'confirm_yes' => 'Confirm & Save',
     ],
 
     'purchase' => [

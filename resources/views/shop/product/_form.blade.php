@@ -99,10 +99,13 @@
                    placeholder="{{ __('ui.product.unit') }}" class="{{ $input }}">
             <input type="hidden" name="unit" :value="unitChoice === '__other__' ? unitCustom : unitChoice">
         </div>
-        <div>
-            <label class="text-sm text-gray-600">{{ __('ui.product.sku') }}</label>
-            <input name="sku" value="{{ old('sku', $isEdit ? $product->sku : '') }}" class="{{ $input }}">
-        </div>
+        @if ($isEdit && $product->sku)
+            {{-- SKU is system-generated and immutable — shown read-only. --}}
+            <div>
+                <label class="text-sm text-gray-600">{{ __('ui.product.sku') }}</label>
+                <input value="{{ $product->sku }}" disabled class="{{ $input }} bg-gray-100 text-gray-500">
+            </div>
+        @endif
         <div>
             <label class="text-sm text-gray-600">{{ __('ui.product.reorder') }}</label>
             <input name="reorder_level" type="number" min="0" value="{{ old('reorder_level', $isEdit ? $product->reorder_level : 0) }}" class="{{ $input }}">

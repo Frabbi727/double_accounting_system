@@ -3,7 +3,6 @@
 namespace Modules\Accounting\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class UpdateProductRequest extends FormRequest
@@ -15,12 +14,9 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        // The bound route model — used to ignore this product's own SKU.
-        $productId = $this->route('product')?->id;
-
         return [
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:60', Rule::unique('products', 'sku')->ignore($productId)],
+            // sku is system-generated and immutable — never edited here.
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
             'unit' => ['required', 'string', 'max:20'],
             'sale_price' => ['required', 'numeric', 'gte:0'],

@@ -42,7 +42,7 @@ class SaleController extends Controller
         $customers = Customer::orderBy('name')->get();
 
         return view('shop.sale.create', [
-            'products' => Product::where('is_active', true)->orderBy('name')->get(),
+            'products' => Product::where('is_active', true)->with('category.parent')->orderBy('name')->get(),
             'customers' => $customers,
             // Cash/bank accounts the paid amount can land in ("cash drawer").
             'accounts' => Account::cashOrBank()->orderBy('code')->get(),

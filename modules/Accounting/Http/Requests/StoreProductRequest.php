@@ -19,7 +19,7 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:60', 'unique:products,sku'],
+            // sku is system-generated in ProductService, never user-supplied.
             'product_category_id' => ['nullable', 'exists:product_categories,id'],
             'unit' => ['required', 'string', 'max:20'],
             'cost_price' => ['required', 'numeric', 'gte:0'],

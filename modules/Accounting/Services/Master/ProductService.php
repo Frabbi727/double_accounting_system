@@ -30,13 +30,16 @@ class ProductService
 
             $product = Product::create([
                 'name' => $data['name'],
-                'sku' => $data['sku'] ?? null,
                 'product_category_id' => $data['product_category_id'] ?? null,
                 'unit' => $data['unit'] ?? 'pcs',
                 'cost_price' => $data['cost_price'],
                 'sale_price' => $data['sale_price'],
                 'reorder_level' => $data['reorder_level'] ?? 0,
             ]);
+
+            // SKU is system-generated (not user-entered) and unique — derived
+            // from the auto-increment id so no collision is possible.
+            $product->update(['sku' => $this->generateSku($product->id)]);
 
             $qty = (float) ($data['opening_qty'] ?? 0);
 
@@ -53,12 +56,18 @@ class ProductService
         });
     }
 
+    /** System SKU: "P" + zero-padded product id (e.g. P00042). Always unique. */
+    private function generateSku(int $id): string
+    {
+        return 'P'.str_pad((string) $id, 5, '0', STR_PAD_LEFT);
+    }
+
     public function update(Product $product, array $data): Product
     {
         // Opening stock is not editable here — use correctOpeningStock().
+        // SKU is system-generated and immutable — never touched on update.
         $product->update([
             'name' => $data['name'],
-            'sku' => $data['sku'] ?? null,
             'product_category_id' => $data['product_category_id'] ?? null,
             'unit' => $data['unit'] ?? 'pcs',
             'sale_price' => $data['sale_price'],

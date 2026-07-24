@@ -10,15 +10,24 @@
         <form method="POST" action="{{ route('sales.store') }}" class="bg-white rounded-lg shadow p-6 space-y-4"
               x-data="{
                   products: @js($products->mapWithKeys(fn($p) => [$p->id => array_filter([
+                      'name'  => $p->name,
+                      'unit'  => $p->unit,
                       'price' => (float) $p->sale_price,
                       'cost'  => auth()->user()->can('cost.view') ? (float) $p->cost_price : null,
                   ], fn($v) => $v !== null)])),
+                  customerNames: @js($customers->mapWithKeys(fn($c) => [$c->id => $c->name])),
                   customerDiscounts: @js($customerDiscounts),
                   customerId: '',
                   paid: 0,
                   billDiscountValue: 0,
                   billDiscountMode: 'flat',
+                  confirming: false,
+                  saleDate: @js(old('date', now()->toDateString())),
                   items: [{ product_id: '', qty: 1, unit_price: 0, cost: 0, discountValue: 0, discountMode: 'flat' }],
+
+                  productName(i) { return this.products[i.product_id]?.name || ''; },
+                  productUnit(i) { return this.products[i.product_id]?.unit || ''; },
+                  get customerLabel() { return this.customerNames[this.customerId] || @js(__('ui.sale.walk_in')); },
 
                   onProductChange(i) {
                       const p = this.products[i.product_id];
@@ -37,7 +46,10 @@
                       return Math.min(Math.max(raw, 0), this.lineGross(i));
                   },
                   lineNet(i) { return this.lineGross(i) - this.lineDiscountTaka(i); },
+                  get itemsGross() { return this.items.reduce((s, i) => s + this.lineGross(i), 0); },
+                  get itemsDiscount() { return this.items.reduce((s, i) => s + this.lineDiscountTaka(i), 0); },
                   get itemsNet() { return this.items.reduce((s, i) => s + this.lineNet(i), 0); },
+                  get filledItems() { return this.items.filter(i => i.product_id !== '' && Number(i.qty) > 0); },
 
                   get billDiscountTaka() {
                       const raw = this.billDiscountMode === 'pct'
@@ -70,7 +82,7 @@
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.common.date') }}</label>
-                    <input name="date" type="date" value="{{ old('date', now()->toDateString()) }}" required class="{{ $input }}">
+                    <input name="date" type="date" x-model="saleDate" required class="{{ $input }}">
                 </div>
             </div>
 
@@ -78,20 +90,24 @@
                 <thead class="text-gray-500 text-left">
                     <tr>
                         <th class="py-1">{{ __('ui.sale.product') }}</th>
-                        <th class="py-1 w-20">{{ __('ui.sale.qty') }}</th>
-                        <th class="py-1 w-24">{{ __('ui.sale.price') }}</th>
-                        <th class="py-1 w-36">{{ __('ui.sale.discount') }}</th>
-                        <th class="py-1"></th>
+                        <th class="py-1 w-28">{{ __('ui.sale.qty') }}</th>
+                        <th class="py-1 w-28">{{ __('ui.sale.price') }}</th>
+                        <th class="py-1 w-52">{{ __('ui.sale.discount') }}</th>
+                        <th class="py-1 w-6"></th>
                     </tr>
                 </thead>
                 <tbody>
                     <template x-for="(item, idx) in items" :key="idx">
-                        <tr :class="lineBelowCost(item) ? 'align-top' : 'align-top'">
+                        <tr class="align-top">
                             <td class="py-1 pe-2">
                                 <select :name="`items[${idx}][product_id]`" x-model="item.product_id" @change="onProductChange(item)" required class="w-full rounded border-gray-300 text-sm">
                                     <option value="">—</option>
-                                    @foreach ($products as $p)
-                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                    @foreach ($products->groupBy(fn ($p) => $p->category?->full_name ?? __('ui.product.none')) as $group => $groupProducts)
+                                        <optgroup label="{{ $group }}">
+                                            @foreach ($groupProducts as $p)
+                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 </select>
                                 @can('cost.view')
@@ -100,18 +116,22 @@
                                     </p>
                                 @endcan
                             </td>
-                            <td class="py-1 pe-2"><input :name="`items[${idx}][qty]`" x-model="item.qty" type="number" step="0.001" min="0" class="w-full rounded border-gray-300 text-sm"></td>
+                            <td class="py-1 pe-2">
+                                <input :name="`items[${idx}][qty]`" x-model="item.qty" type="number" step="0.001" min="0" class="w-full rounded border-gray-300 text-sm">
+                                <span class="block text-[11px] text-gray-400 mt-0.5 h-3" x-text="productUnit(item)"></span>
+                            </td>
                             <td class="py-1 pe-2"><input :name="`items[${idx}][unit_price]`" x-model="item.unit_price" type="number" step="0.01" min="0" class="w-full rounded border-gray-300 text-sm"></td>
                             <td class="py-1 pe-2">
                                 <div class="flex gap-1">
-                                    <input x-model="item.discountValue" type="number" step="0.01" min="0" class="w-full rounded border-gray-300 text-sm">
-                                    <select x-model="item.discountMode" class="rounded border-gray-300 text-sm px-1">
-                                        <option value="flat">৳</option>
-                                        <option value="pct">%</option>
+                                    <input x-model="item.discountValue" type="number" step="0.01" min="0" class="w-20 rounded border-gray-300 text-sm">
+                                    <select x-model="item.discountMode" class="flex-1 rounded border-gray-300 text-sm">
+                                        <option value="flat">{{ __('ui.sale.disc_flat') }}</option>
+                                        <option value="pct">{{ __('ui.sale.disc_pct') }}</option>
                                     </select>
                                     {{-- Submitted value is always the resolved taka amount. --}}
                                     <input type="hidden" :name="`items[${idx}][discount]`" :value="lineDiscountTaka(item).toFixed(2)">
                                 </div>
+                                <p x-show="item.discountMode === 'pct' && lineGross(item) > 0" class="text-[11px] text-gray-400 mt-0.5">= ৳<span x-text="lineDiscountTaka(item).toFixed(2)"></span></p>
                             </td>
                             <td class="py-1"><button type="button" @click="items.splice(idx,1)" x-show="items.length>1" class="text-red-500">✕</button></td>
                         </tr>
@@ -124,10 +144,10 @@
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.sale.bill_discount') }}</label>
                     <div class="flex gap-1 mt-1">
-                        <input x-model="billDiscountValue" type="number" step="0.01" min="0" class="block w-full rounded border-gray-300 shadow-sm text-sm">
-                        <select x-model="billDiscountMode" class="rounded border-gray-300 text-sm px-1">
-                            <option value="flat">৳</option>
-                            <option value="pct">%</option>
+                        <input x-model="billDiscountValue" type="number" step="0.01" min="0" class="block w-20 rounded border-gray-300 shadow-sm text-sm">
+                        <select x-model="billDiscountMode" class="flex-1 rounded border-gray-300 text-sm">
+                            <option value="flat">{{ __('ui.sale.disc_flat') }}</option>
+                            <option value="pct">{{ __('ui.sale.disc_pct') }}</option>
                         </select>
                     </div>
                     <input type="hidden" name="discount" :value="billDiscountTaka.toFixed(2)">
@@ -163,9 +183,15 @@
             </div>
 
             <div class="flex gap-3">
-                <button :disabled="needsCustomer" :class="needsCustomer ? 'opacity-50 cursor-not-allowed' : ''" class="bg-gray-800 text-white rounded px-4 py-2 text-sm">{{ __('ui.sale.save') }}</button>
+                {{-- Opens the confirmation dialog instead of submitting directly, so the
+                     user reviews the full breakdown before the sale hits the ledger. --}}
+                <button type="button" @click="if (!needsCustomer) confirming = true"
+                        :disabled="needsCustomer" :class="needsCustomer ? 'opacity-50 cursor-not-allowed' : ''"
+                        class="bg-gray-800 text-white rounded px-4 py-2 text-sm">{{ __('ui.sale.save') }}</button>
                 <a href="{{ route('sales.index') }}" class="text-gray-500 px-4 py-2 text-sm">{{ __('ui.common.cancel') }}</a>
             </div>
+
+            @include('shop.sale._confirm')
         </form>
     </div>
 </x-app-layout>

@@ -53,6 +53,25 @@ class ProductCrudTest extends TestCase
         ]);
     }
 
+    public function test_sku_is_auto_generated_and_unique(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->post('/products', [
+            'name' => 'Alpha', 'unit' => 'pcs', 'cost_price' => 5, 'sale_price' => 8,
+        ])->assertRedirect();
+        $this->actingAs($owner)->post('/products', [
+            'name' => 'Beta', 'unit' => 'pcs', 'cost_price' => 5, 'sale_price' => 8,
+        ])->assertRedirect();
+
+        $skus = Product::pluck('sku');
+
+        // Every product has a system SKU, all non-null and distinct.
+        $this->assertTrue($skus->every(fn ($s) => ! empty($s)));
+        $this->assertSame($skus->count(), $skus->unique()->count());
+        $this->assertMatchesRegularExpression('/^P\d{5}$/', Product::where('name', 'Alpha')->value('sku'));
+    }
+
     public function test_owner_edits_product(): void
     {
         $product = app(ProductService::class)->create([
