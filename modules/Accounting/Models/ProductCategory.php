@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductCategory extends Model
@@ -20,6 +21,26 @@ class ProductCategory extends Model
         return $this->attributes[$primary]
             ?? $this->attributes[$fallback]
             ?? '';
+    }
+
+    /** "Category > Sub-category" when this row is a sub-category, else just the name. */
+    public function getFullNameAttribute(): string
+    {
+        return $this->parent
+            ? $this->parent->name.' > '.$this->name
+            : $this->name;
+    }
+
+    /** Null for a top-level category; set for a sub-category. */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, 'parent_id');
+    }
+
+    /** Sub-categories under a top-level category. */
+    public function children(): HasMany
+    {
+        return $this->hasMany(ProductCategory::class, 'parent_id');
     }
 
     public function products(): HasMany

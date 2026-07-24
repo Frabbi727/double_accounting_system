@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ChartOfAccountsSeeder::class,
             RolesAndPermissionsSeeder::class,
+            ProductCategorySeeder::class,
+            UnitSeeder::class,
         ]);
 
         $demo = [

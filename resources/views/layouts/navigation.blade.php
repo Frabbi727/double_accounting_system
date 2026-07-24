@@ -78,6 +78,10 @@
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v10M4 7v10l8 4"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.products') }}</span>
                     </a>
+                    <a href="{{ route('product-categories.index') }}" class="{{ $linkBase }} {{ request()->routeIs('product-categories.*') ? $linkActive : $linkIdle }}">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.41.59l7 7a2 2 0 010 2.82l-5 5a2 2 0 01-2.82 0l-7-7A2 2 0 013 11V6a3 3 0 013-3z"/></svg>
+                        <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.categories') }}</span>
+                    </a>
                     <a href="{{ route('customers.index') }}" class="{{ $linkBase }} {{ request()->routeIs('customers.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav.customers') }}</span>

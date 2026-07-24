@@ -10,6 +10,7 @@ use App\Http\Controllers\Shop\ExportController;
 use App\Http\Controllers\Shop\IncentiveController;
 use App\Http\Controllers\Shop\OpeningController;
 use App\Http\Controllers\Shop\PaymentController;
+use App\Http\Controllers\Shop\ProductCategoryController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\PurchaseController;
 use App\Http\Controllers\Shop\PurchaseReturnController;
@@ -53,6 +54,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // Product categories & sub-categories (self-referential parent_id).
+        Route::get('/product-categories', [ProductCategoryController::class, 'index'])->name('product-categories.index');
+        Route::post('/product-categories', [ProductCategoryController::class, 'store'])->name('product-categories.store');
+        Route::delete('/product-categories/{product_category}', [ProductCategoryController::class, 'destroy'])->name('product-categories.destroy');
 
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');

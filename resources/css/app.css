@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Hide Alpine elements until Alpine initializes (e.g. modal overlays). */
+[x-cloak] { display: none !important; }

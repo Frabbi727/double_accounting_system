@@ -1,0 +1,27 @@
+<?php
+
+namespace Modules\Accounting\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Unit extends Model
+{
+    protected $guarded = [];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Locale-aware display name, backed by the name_bn / name_en columns.
+     */
+    public function getNameAttribute(): string
+    {
+        $primary = app()->getLocale() === 'en' ? 'name_en' : 'name_bn';
+        $fallback = $primary === 'name_en' ? 'name_bn' : 'name_en';
+
+        return $this->attributes[$primary]
+            ?? $this->attributes[$fallback]
+            ?? '';
+    }
+}
