@@ -43,4 +43,5 @@ class AssetCategorySeeder extends Seeder
             );
         }
     }
+
 }
