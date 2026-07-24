@@ -121,7 +121,7 @@
                 @endcan
 
                 @can('payment.manage')
-                    <a href="{{ route('payments.create') }}" class="{{ $linkBase }} {{ request()->routeIs('payments.*') ? $linkActive : $linkIdle }}">
+                    <a href="{{ route('payments.index') }}" class="{{ $linkBase }} {{ request()->routeIs('payments.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav_more.payment') }}</span>
                     </a>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Customer;
+use Modules\Accounting\Models\JournalEntry;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Reporting\ReportService;
@@ -14,11 +15,65 @@ use Modules\Finance\Services\PaymentService;
 
 class PaymentController extends Controller
 {
+    /** Ledger reference types that represent a party payment. */
+    private const PAYMENT_TYPES = ['PaymentIn', 'PaymentOut'];
+
     public function __construct(
         private PaymentService $payments,
         private ReportService $reports,
         private LedgerService $ledger,
     ) {}
+
+    /**
+     * Payments have no table of their own — each one is a journal entry keyed
+     * to the party by reference_type (PaymentIn/PaymentOut) + reference_id.
+     * The list resolves the party name and their live remaining due per row.
+     */
+    public function index()
+    {
+        $entries = JournalEntry::whereIn('reference_type', self::PAYMENT_TYPES)
+            ->with('lines.account', 'creator')
+            ->latest('date')->latest('id')->limit(100)->get();
+
+        $customers = Customer::pluck('name', 'id');
+        $suppliers = Supplier::pluck('name', 'id');
+
+        return view('shop.payment.index', [
+            'entries' => $entries,
+            'customers' => $customers,
+            'suppliers' => $suppliers,
+            'remaining' => $this->remainingDues($entries),
+            'cashAccount' => fn (JournalEntry $e) => $this->cashAccount($e),
+        ]);
+    }
+
+    /**
+     * Printable detail voucher for one payment — who it was to/from, the
+     * cash/bank account it moved through, the party's live remaining due, and
+     * the exact debit/credit it posted to the ledger.
+     */
+    public function show(JournalEntry $payment)
+    {
+        abort_if(! in_array($payment->reference_type, self::PAYMENT_TYPES, true), 404);
+
+        $payment->load('lines.account', 'creator');
+
+        $isReceived = $payment->reference_type === 'PaymentIn';
+        $partyType = $isReceived ? 'customer' : 'supplier';
+        $party = ($isReceived ? Customer::class : Supplier::class)::find($payment->reference_id);
+
+        $remainingDue = $party
+            ? $this->reports->partyDue($partyType, $payment->reference_id)
+            : null;
+
+        return view('shop.payment.voucher', [
+            'payment' => $payment,
+            'isReceived' => $isReceived,
+            'party' => $party,
+            'cashAccount' => $this->cashAccount($payment),
+            'remainingDue' => $remainingDue,
+        ]);
+    }
 
     public function create(Request $request)
     {
@@ -83,5 +138,39 @@ class PaymentController extends Controller
         }
 
         return redirect()->route('payments.create')->with('status', __('ui.common.saved'));
+    }
+
+    /**
+     * The cash/bank side of a payment: for a receipt it's the debited account,
+     * for a supplier payment it's the credited one (the other line is the
+     * receivable/payable control account).
+     */
+    private function cashAccount(JournalEntry $entry): ?Account
+    {
+        $received = $entry->reference_type === 'PaymentIn';
+
+        $line = $entry->lines->first(
+            fn ($l) => $received ? (float) $l->debit > 0 : (float) $l->credit > 0
+        );
+
+        return $line?->account;
+    }
+
+    /**
+     * Live remaining due per party referenced in the list, keyed "type:id",
+     * deduplicated so each party is queried at most once.
+     *
+     * @return array<string, float>
+     */
+    private function remainingDues($entries): array
+    {
+        $remaining = [];
+        foreach ($entries as $e) {
+            $party = $e->reference_type === 'PaymentIn' ? 'customer' : 'supplier';
+            $key = $party.':'.$e->reference_id;
+            $remaining[$key] ??= $this->reports->partyDue($party, $e->reference_id);
+        }
+
+        return $remaining;
     }
 }

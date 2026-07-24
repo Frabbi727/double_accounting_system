@@ -103,7 +103,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Payments & transfers (owner + accountant).
     Route::middleware(['can:payment.manage', 'opening.locked'])->group(function () {
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show')->whereNumber('payment');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
 
         Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');

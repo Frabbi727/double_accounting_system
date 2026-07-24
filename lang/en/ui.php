@@ -359,6 +359,18 @@ return [
         'no_due' => 'This party has no outstanding due — no payment can be taken.',
         'over_due' => 'The amount cannot exceed the current due.',
         'save' => 'Save Payment',
+        'list' => 'Payments',
+        'details' => 'Details',
+        'voucher' => 'Payment Voucher',
+        'entered_by' => 'Entered by',
+        'cash_bank' => 'Cash/Bank account',
+        'remaining_due' => 'Remaining due',
+        'ledger_effect' => 'Ledger effect',
+        'debit' => 'Debit',
+        'credit' => 'Credit',
+        'note' => 'Note',
+        'print' => 'Print',
+        'back' => 'Back to list',
     ],
 
     'transfer' => [
