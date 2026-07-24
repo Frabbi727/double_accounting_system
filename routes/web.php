@@ -90,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
     // Printing an invoice only needs sale.create (no opening lock) — view only.
     Route::middleware('can:sale.create')->group(function () {
         Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
+        Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     });
 
     // Purchases — needs purchase.create and a locked opening period.

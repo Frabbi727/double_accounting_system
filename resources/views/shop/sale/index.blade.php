@@ -23,10 +23,15 @@
                     @forelse ($sales as $s)
                         <tr>
                             <td class="px-4 py-2">{{ $s->date->format('d/m/Y') }}</td>
-                            <td class="px-4 py-2">{{ $s->invoice_no ?? '#'.$s->id }}</td>
+                            <td class="px-4 py-2">
+                                <a href="{{ route('sales.show', $s) }}" class="text-blue-600 hover:underline font-medium">
+                                    {{ $s->invoice_no ?? '#'.$s->id }}
+                                </a>
+                            </td>
                             <td class="px-4 py-2 text-right">@taka($s->net())</td>
                             <td class="px-4 py-2 text-right">@taka($s->paid_amount)</td>
                             <td class="px-4 py-2 text-right">
+                                <a href="{{ route('sales.show', $s) }}" class="text-blue-600 hover:underline mr-3">{{ __('ui.report.view') }}</a>
                                 <a href="{{ route('sales.print', $s) }}" target="_blank" class="text-blue-600 hover:underline">{{ __('ui.invoice.print') }}</a>
                             </td>
                         </tr>

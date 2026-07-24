@@ -39,6 +39,39 @@ class SaleController extends Controller
         ]);
     }
 
+    public function show(Sale $sale): View
+    {
+        $sale->load(['items.product.category.parent', 'customer', 'creator']);
+
+        // Find the revenue journal entry to see which cash/bank account was used.
+        $journalEntry = \Modules\Accounting\Models\JournalEntry::where('reference_type', 'Sale')
+            ->where('reference_id', $sale->id)
+            ->with('lines.account')
+            ->first();
+
+        // Find the cash or bank line to determine the deposit account.
+        $paymentLine = $journalEntry
+            ? $journalEntry->lines->first(fn($line) => $line->debit > 0 && in_array($line->account->subtype, ['cash', 'bank']))
+            : null;
+
+        $paymentAccount = $paymentLine ? $paymentLine->account : null;
+
+        // If the user has permission to see costs, load the ledger entries (Revenue + COGS).
+        $ledgerEntries = [];
+        if (auth()->user()->can('cost.view')) {
+            $ledgerEntries = \Modules\Accounting\Models\JournalEntry::where(function ($query) use ($sale) {
+                $query->where(fn($q) => $q->where('reference_type', 'Sale')->where('reference_id', $sale->id))
+                      ->orWhere(fn($q) => $q->where('reference_type', 'SaleCOGS')->where('reference_id', $sale->id));
+            })->with('lines.account')->get();
+        }
+
+        return view('shop.sale.show', [
+            'sale' => $sale,
+            'paymentAccount' => $paymentAccount,
+            'ledgerEntries' => $ledgerEntries,
+        ]);
+    }
+
     public function create(): View
     {
         $customers = Customer::orderBy('name')->get();
