@@ -38,6 +38,24 @@ class IncentiveController extends Controller
         ]);
     }
 
+    /**
+     * Printable detail voucher for one incentive — the full tracking: party,
+     * how the amount was computed, how it was settled, the party's live
+     * remaining due, and the exact debit/credit it posted.
+     */
+    public function show(PartyIncentive $incentive)
+    {
+        abort_if($incentive->kind !== 'incentive', 404);
+
+        $incentive->load('journalEntry.lines.account', 'settleAccount', 'creator');
+
+        $remainingDue = $incentive->party_id
+            ? $this->reports->partyDue($incentive->party_type, $incentive->party_id)
+            : null;
+
+        return view('shop.incentive.voucher', compact('incentive', 'remainingDue'));
+    }
+
     public function create()
     {
         $accounts = Account::cashOrBank()->orderBy('code')->get();

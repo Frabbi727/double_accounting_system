@@ -307,6 +307,19 @@ return [
         'confirm_yes' => 'Confirm & save',
         'confirm_back' => 'Go back',
         'review' => 'Review & save',
+
+        // Detail / voucher
+        'voucher' => 'Voucher',
+        'details' => 'Details',
+        'view' => 'View',
+        'print' => 'Print',
+        'back' => 'Back',
+        'computed_as' => 'Computed as',
+        'ledger_effect' => 'Ledger effect (debit/credit)',
+        'debit' => 'Debit',
+        'credit' => 'Credit',
+        'created_by' => 'Entered by',
+        'stock_value' => 'Current stock value',
     ],
     'rebate' => [
         'title' => 'Rebate',

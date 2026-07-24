@@ -112,6 +112,7 @@ Route::middleware(['auth'])->group(function () {
         // Incentives — income received / commission paid (owner + accountant).
         Route::get('/incentives', [IncentiveController::class, 'index'])->name('incentives.index');
         Route::get('/incentives/create', [IncentiveController::class, 'create'])->name('incentives.create');
+        Route::get('/incentives/{incentive}', [IncentiveController::class, 'show'])->name('incentives.show')->whereNumber('incentive');
         Route::post('/incentives', [IncentiveController::class, 'store'])->name('incentives.store');
     });
 
@@ -129,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
         // Rebate — lowers a product's cost (owner only, inventory valuation).
         Route::get('/rebates', [RebateController::class, 'index'])->name('rebates.index');
         Route::get('/rebates/create', [RebateController::class, 'create'])->name('rebates.create');
+        Route::get('/rebates/{rebate}', [RebateController::class, 'show'])->name('rebates.show')->whereNumber('rebate');
         Route::post('/rebates', [RebateController::class, 'store'])->name('rebates.store');
     });
 

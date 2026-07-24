@@ -24,12 +24,14 @@
                 <th class="px-4 py-2">{{ __('ui.incentive.settle') }}</th>
                 <th class="px-4 py-2 text-right">{{ __('ui.incentive.amount') }}</th>
                 <th class="px-4 py-2 text-right">{{ __('ui.incentive.remaining_due') }}</th>
+                <th class="px-4 py-2"></th>
             </tr>
         </thead>
         <tbody class="divide-y">
             @forelse ($entries as $e)
                 @php($party = $e->party())
-                <tr>
+                @php($showRoute = $e->kind === 'rebate' ? route('rebates.show', $e) : route('incentives.show', $e))
+                <tr class="hover:bg-gray-50">
                     <td class="px-4 py-2">{{ $e->date->format('d/m/Y') }}</td>
                     <td class="px-4 py-2">{{ $party?->name ?? '—' }}</td>
                     @if ($showProduct ?? false)
@@ -50,9 +52,12 @@
                             —
                         @endif
                     </td>
+                    <td class="px-4 py-2 text-right">
+                        <a href="{{ $showRoute }}" class="text-blue-600 hover:underline">{{ __('ui.incentive.details') }}</a>
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="{{ ($showProduct ?? false) ? 7 : 6 }}" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
+                <tr><td colspan="{{ ($showProduct ?? false) ? 8 : 7 }}" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
             @endforelse
         </tbody>
     </table>

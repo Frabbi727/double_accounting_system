@@ -2,6 +2,7 @@
 
 namespace Modules\Incentive\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Accounting\Models\Account;
@@ -41,6 +42,11 @@ class PartyIncentive extends Model
     public function settleAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'settle_account_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**

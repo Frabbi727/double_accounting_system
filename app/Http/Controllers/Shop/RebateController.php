@@ -38,6 +38,28 @@ class RebateController extends Controller
         ]);
     }
 
+    /**
+     * Printable detail voucher for one rebate — the target product and its
+     * stock value, how the amount was computed, how it was settled, the
+     * supplier's live remaining due, and the exact debit/credit it posted.
+     * Reuses the shared incentive voucher view.
+     */
+    public function show(PartyIncentive $rebate)
+    {
+        abort_if($rebate->kind !== 'rebate', 404);
+
+        $rebate->load('journalEntry.lines.account', 'product', 'settleAccount', 'creator');
+
+        $remainingDue = $rebate->party_id
+            ? $this->reports->partyDue('supplier', $rebate->party_id)
+            : null;
+
+        return view('shop.incentive.voucher', [
+            'incentive' => $rebate,
+            'remainingDue' => $remainingDue,
+        ]);
+    }
+
     public function create()
     {
         $accounts = Account::cashOrBank()->orderBy('code')->get();

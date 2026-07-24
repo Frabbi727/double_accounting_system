@@ -187,6 +187,82 @@ class IncentiveRebateUiTest extends TestCase
         $this->assertEqualsWithDelta(4600, $this->due('supplier', $this->supplier->id), 0.01);
     }
 
+    public function test_incentive_detail_voucher_shows_party_amount_and_ledger(): void
+    {
+        $this->actingAs($this->owner)->post('/incentives', [
+            'direction' => 'received', 'settle_mode' => 'due', 'basis' => 'fixed',
+            'party_id' => $this->supplier->id, 'amount' => 1000, 'date' => '2026-08-06',
+        ]);
+
+        $row = PartyIncentive::first();
+
+        $this->actingAs($this->owner)->get("/incentives/{$row->id}")
+            ->assertOk()
+            ->assertSee($this->supplier->name)      // party attribution
+            ->assertSee('2010')                     // the payable control account it touched
+            ->assertSee('4030');                    // incentive income account
+    }
+
+    public function test_rebate_detail_voucher_shows_product(): void
+    {
+        $this->actingAs($this->owner)->post('/rebates', [
+            'product_id' => $this->product->id, 'settle_mode' => 'cash', 'basis' => 'fixed',
+            'amount' => 400, 'date' => '2026-08-06',
+        ]);
+
+        $row = PartyIncentive::first();
+
+        $this->actingAs($this->owner)->get("/rebates/{$row->id}")
+            ->assertOk()
+            ->assertSee($this->product->name)
+            ->assertSee('1040');                    // inventory account credited
+    }
+
+    public function test_detail_voucher_rejects_wrong_kind(): void
+    {
+        // An incentive row must not resolve through the rebate route, and vice versa.
+        $this->actingAs($this->owner)->post('/incentives', [
+            'direction' => 'received', 'settle_mode' => 'cash', 'basis' => 'fixed',
+            'party_id' => $this->supplier->id, 'amount' => 1000, 'date' => '2026-08-06',
+        ]);
+        $incentive = PartyIncentive::first();
+
+        $this->actingAs($this->owner)->post('/rebates', [
+            'product_id' => $this->product->id, 'settle_mode' => 'cash', 'basis' => 'fixed',
+            'amount' => 400, 'date' => '2026-08-06',
+        ]);
+        $rebate = PartyIncentive::where('kind', 'rebate')->first();
+
+        $this->actingAs($this->owner)->get("/rebates/{$incentive->id}")->assertNotFound();
+        $this->actingAs($this->owner)->get("/incentives/{$rebate->id}")->assertNotFound();
+    }
+
+    public function test_detail_voucher_role_gating(): void
+    {
+        $this->actingAs($this->owner)->post('/incentives', [
+            'direction' => 'received', 'settle_mode' => 'cash', 'basis' => 'fixed',
+            'party_id' => $this->supplier->id, 'amount' => 1000, 'date' => '2026-08-06',
+        ]);
+        $incentive = PartyIncentive::first();
+
+        $this->actingAs($this->owner)->post('/rebates', [
+            'product_id' => $this->product->id, 'settle_mode' => 'cash', 'basis' => 'fixed',
+            'amount' => 400, 'date' => '2026-08-06',
+        ]);
+        $rebate = PartyIncentive::where('kind', 'rebate')->first();
+
+        $accountant = User::factory()->create();
+        $accountant->assignRole('accountant');
+        $sales = User::factory()->create();
+        $sales->assignRole('salesperson');
+
+        // Salesperson reaches neither; accountant reaches incentives but not owner-only rebate.
+        $this->actingAs($sales)->get("/incentives/{$incentive->id}")->assertForbidden();
+        $this->actingAs($accountant)->get("/incentives/{$incentive->id}")->assertOk();
+        $this->actingAs($accountant)->get("/rebates/{$rebate->id}")->assertForbidden();
+        $this->actingAs($this->owner)->get("/rebates/{$rebate->id}")->assertOk();
+    }
+
     public function test_role_gating(): void
     {
         $accountant = User::factory()->create();
