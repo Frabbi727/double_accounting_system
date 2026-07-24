@@ -156,7 +156,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show')->whereNumber('payment');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
 
+        Route::get('/transfers', [TransferController::class, 'index'])->name('transfers.index');
         Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
+        Route::get('/transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show')->whereNumber('transfer');
         Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
 
         // Incentives — income received / commission paid (owner + accountant).

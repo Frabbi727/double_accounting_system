@@ -268,4 +268,52 @@ class FinanceTest extends TestCase
         $this->assertEqualsWithDelta(5000, $this->balance('2020'), 0.01);   // loan up
         $this->ledger()->assertLedgerBalanced();
     }
+
+    // ------------------------------------------------------------------
+    // Loan-repayment cap: you cannot repay more than you actually owe.
+    // ------------------------------------------------------------------
+
+    public function test_loan_repayment_exceeding_outstanding_is_rejected(): void
+    {
+        $this->openCash(20000);   // plenty of cash, so the source guard won't fire
+
+        // Draw a 5000 loan → outstanding loan is now 5000.
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '2020')->first(),   // Bank Loan
+            to: Account::where('code', '1010')->first(),     // Cash
+            data: ['amount' => 5000, 'date' => '2026-08-06'],
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        // Repaying 6000 against a 5000 debt would drive the loan negative.
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '1010')->first(),   // Cash
+            to: Account::where('code', '2020')->first(),     // Bank Loan
+            data: ['amount' => 6000, 'date' => '2026-08-07'],
+        );
+    }
+
+    public function test_loan_repayment_within_outstanding_succeeds(): void
+    {
+        $this->openCash(20000);
+
+        // Draw a 5000 loan.
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '2020')->first(),   // Bank Loan
+            to: Account::where('code', '1010')->first(),     // Cash
+            data: ['amount' => 5000, 'date' => '2026-08-06'],
+        );
+
+        // Repay 3000 of it.
+        app(TransferService::class)->transfer(
+            from: Account::where('code', '1010')->first(),   // Cash
+            to: Account::where('code', '2020')->first(),     // Bank Loan
+            data: ['amount' => 3000, 'date' => '2026-08-07'],
+        );
+
+        $this->assertEqualsWithDelta(2000, $this->balance('2020'), 0.01);    // loan down to 2000
+        $this->assertEqualsWithDelta(22000, $this->balance('1010'), 0.01);   // 20000 + 5000 - 3000
+        $this->ledger()->assertLedgerBalanced();
+    }
 }

@@ -35,6 +35,7 @@ class TransferService
 
         $date = $data['date'] ?? now()->toDateString();
         $this->balanceGuard->assertSufficient($from, $amount, $date);
+        $this->balanceGuard->assertLoanNotOverpaid($to, $amount, $date);
 
         return $this->ledger->post(
             date: $date,

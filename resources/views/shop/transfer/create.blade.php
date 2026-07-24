@@ -9,14 +9,23 @@
         <form method="POST" action="{{ route('transfers.store') }}" class="bg-white rounded-lg shadow p-6 space-y-4"
               x-data="{
                   fromId: @js((string) ($accounts->first()->id ?? '')),
+                  toId: @js((string) ($accounts->first()->id ?? '')),
                   amount: @js((string) old('amount', '')),
                   accountBalances: @js($accountBalances),
+                  loanOutstanding: @js($loanOutstanding),
                   get sourceBalance() {
                       const b = this.accountBalances[this.fromId];
                       return b === undefined || b === null ? null : Number(b);
                   },
+                  get loanCap() {
+                      const b = this.loanOutstanding[this.toId];
+                      return b === undefined || b === null ? null : Number(b);
+                  },
                   get insufficient() {
                       return this.sourceBalance !== null && Number(this.amount) > this.sourceBalance + 0.005;
+                  },
+                  get overRepay() {
+                      return this.loanCap !== null && Number(this.amount) > this.loanCap + 0.005;
                   },
                   fmt(n) { return '৳ ' + Number(n).toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
               }">
@@ -35,18 +44,23 @@
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.transfer.to') }}</label>
-                    <select name="to_account_id" required class="{{ $input }}">
+                    <select name="to_account_id" x-model="toId" required class="{{ $input }}">
                         @foreach ($accounts as $a)
                             <option value="{{ $a->id }}">{{ $a->code }} — {{ $a->name }}</option>
                         @endforeach
                     </select>
+                    <p class="mt-1 text-xs text-gray-500" x-show="loanCap !== null">
+                        {{ __('ui.transfer.loan_outstanding') }}: <span class="font-semibold" x-text="fmt(loanCap)"></span>
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.transfer.amount') }}</label>
                     <input name="amount" type="number" step="0.01" min="0" required class="{{ $input }}"
-                           x-model="amount" :class="insufficient ? 'border-red-400 ring-red-300' : ''">
+                           x-model="amount" :class="(insufficient || overRepay) ? 'border-red-400 ring-red-300' : ''">
                     <p class="mt-1 text-xs text-red-600" x-show="insufficient"
                        x-text="'{{ __('ui.finance.insufficient') }}'"></p>
+                    <p class="mt-1 text-xs text-red-600" x-show="overRepay"
+                       x-text="'{{ __('ui.transfer.over_repay') }}'"></p>
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">{{ __('ui.common.date') }}</label>
@@ -55,7 +69,7 @@
             </div>
             <div class="flex gap-3">
                 <button class="bg-gray-800 text-white rounded px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                        :disabled="insufficient">{{ __('ui.transfer.save') }}</button>
+                        :disabled="insufficient || overRepay">{{ __('ui.transfer.save') }}</button>
                 <a href="{{ route('dashboard') }}" class="text-gray-500 px-4 py-2 text-sm">{{ __('ui.common.cancel') }}</a>
             </div>
         </form>

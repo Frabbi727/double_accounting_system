@@ -146,7 +146,7 @@
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav_more.payment') }}</span>
                     </a>
-                    <a href="{{ route('transfers.create') }}" class="{{ $linkBase }} {{ request()->routeIs('transfers.*') ? $linkActive : $linkIdle }}">
+                    <a href="{{ route('transfers.index') }}" class="{{ $linkBase }} {{ request()->routeIs('transfers.*') ? $linkActive : $linkIdle }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                         <span x-show="!collapsed" class="whitespace-nowrap">{{ __('ui.nav_more.transfer') }}</span>
                     </a>

@@ -42,4 +42,26 @@ class AccountBalanceGuard
             ]));
         }
     }
+
+    /**
+     * A loan (liability) can never be repaid below zero. When money is moved
+     * into a loan account it settles the debt, so the amount may not exceed the
+     * outstanding balance as of the transfer date. Non-loan destinations are
+     * exempt — you can always add money to a cash/bank account.
+     */
+    public function assertLoanNotOverpaid(Account $to, float $amount, ?string $asOf = null): void
+    {
+        if ($to->subtype !== 'loan') {
+            return;
+        }
+
+        $outstanding = $this->ledger->balance($to, $asOf);   // positive = still owed
+
+        if ($amount > $outstanding + self::EPSILON) {
+            throw new \InvalidArgumentException(__('finance.errors.exceeds_loan', [
+                'account' => $to->name,
+                'outstanding' => Money::taka(max($outstanding, 0)),
+            ]));
+        }
+    }
 }
