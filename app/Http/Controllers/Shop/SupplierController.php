@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Master\SupplierService;
 use Modules\Accounting\Services\Reporting\ReportService;
+use Modules\Incentive\Models\PartyIncentive;
 
 class SupplierController extends Controller
 {
@@ -34,6 +35,8 @@ class SupplierController extends Controller
         return view('shop.supplier.show', [
             'record' => $supplier,
             'statement' => $this->reports->partyStatement('supplier', $supplier->id),
+            'incentives' => PartyIncentive::where('party_type', 'supplier')
+                ->where('party_id', $supplier->id)->latest('date')->latest('id')->get(),
         ]);
     }
 

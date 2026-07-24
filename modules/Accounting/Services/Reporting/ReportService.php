@@ -516,22 +516,126 @@ class ReportService
             ->pluck('id')->all();
 
         $docTypes = $isCustomer ? ['Sale', 'SaleReturn'] : ['Purchase', 'PurchaseReturn'];
-        $paymentType = $isCustomer ? 'PaymentIn' : 'PaymentOut';
+
+        // Entries keyed directly to the party id (not a document): receipts and
+        // payments, plus any incentive/rebate settled against the party's due
+        // (IncentiveOut lowers a customer's receivable; IncentiveIn/RebatePayable
+        // lower a supplier's payable). All carry reference_id = party id.
+        $partyKeyedTypes = $isCustomer
+            ? ['PaymentIn', 'IncentiveOut']
+            : ['PaymentOut', 'IncentiveIn', 'RebatePayable'];
 
         return DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->where('l.account_id', $controlId)
-            ->where(function ($q) use ($docTypes, $docIds, $paymentType, $id) {
+            ->where(function ($q) use ($docTypes, $docIds, $partyKeyedTypes, $id) {
                 $q->where(function ($w) use ($docTypes, $docIds) {
                     $w->whereIn('e.reference_type', $docTypes);
                     empty($docIds) ? $w->whereRaw('1 = 0') : $w->whereIn('e.reference_id', $docIds);
-                })->orWhere(function ($w) use ($paymentType, $id) {
-                    $w->where('e.reference_type', $paymentType)->where('e.reference_id', $id);
+                })->orWhere(function ($w) use ($partyKeyedTypes, $id) {
+                    $w->whereIn('e.reference_type', $partyKeyedTypes)->where('e.reference_id', $id);
                 });
             })
             ->orderBy('e.date')->orderBy('e.id')
             ->select(['e.date', 'e.description', 'e.reference_type', 'e.reference_id', 'l.debit', 'l.credit'])
             ->get();
+    }
+
+    /**
+     * The full billed value of one sale/purchase document, read straight from
+     * its ledger entry: a sale's gross revenue (4010 credit) or a purchase's
+     * capitalized inventory value (1040 debit) — independent of how much was
+     * paid at the time. Used as a percentage base for invoice-level incentives.
+     */
+    public function documentTotal(string $docType, int $docId): float
+    {
+        $isSale = $docType === 'Sale';
+        $accountId = Account::where('code', $isSale ? '4010' : '1040')->value('id');
+
+        $row = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('e.reference_type', $docType)
+            ->where('e.reference_id', $docId)
+            ->where('l.account_id', $accountId)
+            ->selectRaw('COALESCE(SUM(l.debit), 0) as debit, COALESCE(SUM(l.credit), 0) as credit')
+            ->first();
+
+        return round($isSale ? (float) $row->credit : (float) $row->debit, 2);
+    }
+
+    /**
+     * Every posted sale/purchase grouped by party, as
+     * `[party_id => [ ['id'=>, 'label'=>, 'total'=>], ... ]]`. Feeds the
+     * invoice-basis picker (pct_of_invoice) — document totals come straight from
+     * the ledger in one grouped query, so there is no N+1.
+     *
+     * @param  'customer'|'supplier'  $party
+     * @return array<int, array<int, array{id:int, label:string, total:float}>>
+     */
+    public function partyDocuments(string $party): array
+    {
+        $isCustomer = $party !== 'supplier';
+        $table = $isCustomer ? 'sales' : 'purchases';
+        $fk = $isCustomer ? 'customer_id' : 'supplier_id';
+        $docType = $isCustomer ? 'Sale' : 'Purchase';
+        $col = $isCustomer ? 'credit' : 'debit';
+        $accountId = Account::where('code', $isCustomer ? '4010' : '1040')->value('id');
+
+        $rows = DB::table($table.' as d')
+            ->join('journal_entries as e', function ($j) use ($docType) {
+                $j->on('e.reference_id', '=', 'd.id')->where('e.reference_type', $docType);
+            })
+            ->join('journal_entry_lines as l', function ($j) use ($accountId) {
+                $j->on('l.journal_entry_id', '=', 'e.id')->where('l.account_id', $accountId);
+            })
+            ->whereNotNull('d.'.$fk)
+            ->groupBy('d.'.$fk, 'd.id', 'd.invoice_no', 'd.date')
+            ->orderBy('d.date', 'desc')->orderBy('d.id', 'desc')
+            ->selectRaw("d.$fk as party_id, d.id, d.invoice_no, d.date, SUM(l.$col) as total")
+            ->get();
+
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(int) $r->party_id][] = [
+                'id' => (int) $r->id,
+                'label' => ($r->invoice_no ?: '#'.$r->id).' · '.$r->date,
+                'total' => round((float) $r->total, 2),
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Total business done with a party over a window — a customer's gross sales
+     * or a supplier's gross purchases, summed from the documents' ledger
+     * entries. Drives the "sell %" incentive basis.
+     *
+     * @param  'customer'|'supplier'  $party
+     */
+    public function partyTurnover(string $party, int $id, string $from, string $to): float
+    {
+        $isCustomer = $party !== 'supplier';
+        $accountId = Account::where('code', $isCustomer ? '4010' : '1040')->value('id');
+
+        $docIds = DB::table($isCustomer ? 'sales' : 'purchases')
+            ->where($isCustomer ? 'customer_id' : 'supplier_id', $id)
+            ->pluck('id')->all();
+
+        if (empty($docIds)) {
+            return 0.0;
+        }
+
+        $row = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->where('e.reference_type', $isCustomer ? 'Sale' : 'Purchase')
+            ->whereIn('e.reference_id', $docIds)
+            ->whereBetween('e.date', [$from, $to])
+            ->where('l.account_id', $accountId)
+            ->selectRaw('COALESCE(SUM(l.debit), 0) as debit, COALESCE(SUM(l.credit), 0) as credit')
+            ->first();
+
+        return round($isCustomer ? (float) $row->credit : (float) $row->debit, 2);
     }
 
     // ------------------------------------------------------------------

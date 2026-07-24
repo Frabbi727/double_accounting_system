@@ -7,6 +7,7 @@ use Modules\Accounting\Http\Requests\StoreCustomerRequest;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Services\Master\CustomerService;
 use Modules\Accounting\Services\Reporting\ReportService;
+use Modules\Incentive\Models\PartyIncentive;
 
 class CustomerController extends Controller
 {
@@ -34,6 +35,8 @@ class CustomerController extends Controller
         return view('shop.customer.show', [
             'record' => $customer,
             'statement' => $this->reports->partyStatement('customer', $customer->id),
+            'incentives' => PartyIncentive::where('party_type', 'customer')
+                ->where('party_id', $customer->id)->latest('date')->latest('id')->get(),
         ]);
     }
 

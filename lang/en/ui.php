@@ -260,12 +260,53 @@ return [
         'new' => 'New Incentive',
         'list' => 'Recent Incentives',
         'direction' => 'Type',
-        'received' => 'Received (income)',
+        'received' => 'Received from supplier (income)',
+        'given' => 'Given to customer (expense)',
         'paid' => 'Paid (expense)',
+        'party' => 'Party',
+        'select_party' => 'Select party',
         'amount' => 'Amount',
         'account' => 'Cash/Bank',
         'note' => 'Note',
+        'date' => 'Date',
         'save' => 'Save',
+
+        // Basis (what the amount / percentage is worked out on)
+        'basis' => 'Basis',
+        'basis_fixed' => 'Fixed cash',
+        'basis_pct_due' => '% of due',
+        'basis_pct_invoice' => '% of a bill/invoice',
+        'basis_pct_product' => "% of a product's stock value",
+        'basis_pct_sales' => '% of period turnover (sell %)',
+        'rate' => 'Percentage (%)',
+        'base' => 'Base amount',
+        'computed' => 'Computed amount',
+        'invoice' => 'Bill/Invoice',
+        'select_invoice' => 'Select a bill',
+        'period_from' => 'Period: from',
+        'period_to' => 'Period: to',
+
+        // Settlement (how it is squared off)
+        'settle_mode' => 'Settle via',
+        'settle_cash' => 'Cash/Bank',
+        'settle_due' => "Against the party's due",
+        'current_due' => 'Current due',
+        'reduces_due' => "This amount will be deducted from the party's due",
+        'remaining_due' => 'Remaining due',
+        'exceeds_due' => 'The amount cannot exceed the current due.',
+
+        // List
+        'kind' => 'Kind',
+        'kind_incentive' => 'Incentive',
+        'kind_rebate' => 'Rebate',
+        'settle' => 'Settle',
+
+        // Confirmation dialog
+        'confirm_title' => 'Review before saving',
+        'confirm_intro' => 'Confirm if the details below are correct — go back and fix if not.',
+        'confirm_yes' => 'Confirm & save',
+        'confirm_back' => 'Go back',
+        'review' => 'Review & save',
     ],
     'rebate' => [
         'title' => 'Rebate',
@@ -277,6 +318,8 @@ return [
         'note' => 'Note',
         'save' => 'Save',
         'help' => 'Lowers the cost of stock still on hand; not counted as income.',
+        'product_value' => 'Current stock value',
+        'supplier' => 'Supplier',
     ],
 
     'expense' => [
@@ -335,6 +378,7 @@ return [
         'Expense'          => 'Expense',
         'Transfer'         => 'Account transfer',
         'Rebate'           => 'Rebate',
+        'RebatePayable'    => 'Rebate (due settled)',
         'IncentiveIn'      => 'Incentive received',
         'IncentiveOut'     => 'Incentive paid',
         'StockLoss'        => 'Stock loss/damage',

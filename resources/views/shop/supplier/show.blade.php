@@ -30,5 +30,7 @@
         </div>
 
         @include('shop._party_statement', ['linkable' => true])
+
+        @include('shop._party_incentives', ['entries' => $incentives])
     </div>
 </x-app-layout>

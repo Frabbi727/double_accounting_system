@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/stock-loss', [StockAdjustmentController::class, 'store'])->name('stock_loss.store');
 
         // Rebate — lowers a product's cost (owner only, inventory valuation).
+        Route::get('/rebates', [RebateController::class, 'index'])->name('rebates.index');
         Route::get('/rebates/create', [RebateController::class, 'create'])->name('rebates.create');
         Route::post('/rebates', [RebateController::class, 'store'])->name('rebates.store');
     });

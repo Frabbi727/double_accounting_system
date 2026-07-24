@@ -6,31 +6,8 @@
         </div>
     </x-slot>
 
-    <div class="py-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         @include('shop._flash')
-        <div class="bg-white rounded-lg shadow overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 text-gray-500 text-left">
-                    <tr>
-                        <th class="px-4 py-2">{{ __('ui.common.date') }}</th>
-                        <th class="px-4 py-2">{{ __('ui.incentive.direction') }}</th>
-                        <th class="px-4 py-2">{{ __('ui.incentive.note') }}</th>
-                        <th class="px-4 py-2 text-right">{{ __('ui.common.amount') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y">
-                    @forelse ($entries as $e)
-                        <tr>
-                            <td class="px-4 py-2">{{ $e->date->format('d/m/Y') }}</td>
-                            <td class="px-4 py-2">{{ $e->reference_type === 'IncentiveIn' ? __('ui.incentive.received') : __('ui.incentive.paid') }}</td>
-                            <td class="px-4 py-2">{{ $e->description }}</td>
-                            <td class="px-4 py-2 text-right">@taka($e->totalDebit())</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">{{ __('ui.common.no_data') }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @include('shop.incentive._list', ['entries' => $entries, 'remaining' => $remaining, 'showProduct' => false])
     </div>
 </x-app-layout>

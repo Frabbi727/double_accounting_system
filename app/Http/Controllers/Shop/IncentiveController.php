@@ -6,59 +6,100 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
-use Modules\Accounting\Models\JournalEntry;
+use Modules\Accounting\Models\Customer;
+use Modules\Accounting\Models\Supplier;
+use Modules\Accounting\Services\Accounting\LedgerService;
+use Modules\Accounting\Services\Reporting\ReportService;
+use Modules\Incentive\Models\PartyIncentive;
 use Modules\Incentive\Services\IncentiveService;
 
 /**
- * Incentives (FR-49/50): a bonus received from a supplier is our income,
- * a commission paid out is our expense. Ledger-only via IncentiveService.
+ * Incentives (FR-49/50): a bonus received from a supplier is our income, one
+ * given to a customer is our expense. Now attributed to the party and either
+ * paid/received in cash or settled against that party's due — the latter flows
+ * into the party statement/aging via the ledger. Records to party_incentives.
  */
 class IncentiveController extends Controller
 {
     public function __construct(
         private IncentiveService $incentives,
+        private ReportService $reports,
+        private LedgerService $ledger,
     ) {}
 
     public function index()
     {
+        $entries = PartyIncentive::where('kind', 'incentive')
+            ->latest('date')->latest('id')->limit(100)->get();
+
         return view('shop.incentive.index', [
-            'entries' => JournalEntry::whereIn('reference_type', ['IncentiveIn', 'IncentiveOut'])
-                ->latest('date')->latest('id')->limit(50)->with('lines.account')->get(),
+            'entries' => $entries,
+            'remaining' => $this->remainingDues($entries),
         ]);
     }
 
     public function create()
     {
+        $accounts = Account::cashOrBank()->orderBy('code')->get();
+
         return view('shop.incentive.create', [
-            'accounts' => Account::cashOrBank()->orderBy('code')->get(),
+            'customers' => Customer::orderBy('name')->get(),
+            'suppliers' => Supplier::orderBy('name')->get(),
+            'accounts' => $accounts,
+            'accountBalances' => $accounts->mapWithKeys(fn ($a) => [$a->id => $this->ledger->balance($a)]),
+            'customerDues' => collect($this->reports->partyDues('customer'))->pluck('due', 'id'),
+            'supplierDues' => collect($this->reports->partyDues('supplier'))->pluck('due', 'id'),
+            'customerDocs' => $this->reports->partyDocuments('customer'),
+            'supplierDocs' => $this->reports->partyDocuments('supplier'),
         ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'direction' => ['required', 'in:received,paid'],
-            'amount' => ['required', 'numeric', 'gt:0'],
-            'date' => ['required', 'date'],
+            'direction' => ['required', 'in:received,given'],
+            'settle_mode' => ['required', 'in:cash,due'],
+            'party_id' => ['nullable', 'integer', 'required_if:settle_mode,due'],
+            'basis' => ['required', 'in:fixed,pct_of_due,pct_of_invoice,pct_of_sales'],
+            'amount' => ['nullable', 'numeric', 'gt:0', 'required_if:basis,fixed'],
+            'rate' => ['nullable', 'numeric', 'gt:0', 'required_unless:basis,fixed'],
+            'ref_doc_id' => ['nullable', 'integer', 'required_if:basis,pct_of_invoice'],
+            'period_from' => ['nullable', 'date', 'required_if:basis,pct_of_sales'],
+            'period_to' => ['nullable', 'date', 'required_if:basis,pct_of_sales', 'after_or_equal:period_from'],
             'account_id' => ['nullable', 'exists:accounts,id'],
+            'date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $payload = [
-            'amount' => $data['amount'],
-            'date' => $data['date'],
-            'account_id' => $data['account_id'] ?? null,
-            'notes' => $data['notes'] ?? null,
-        ];
+        // Direction fixes which document type an invoice-basis refers to.
+        $data['ref_doc_type'] = $data['direction'] === 'received' ? 'Purchase' : 'Sale';
 
         try {
-            $data['direction'] === 'received'
-                ? $this->incentives->receive($payload)
-                : $this->incentives->pay($payload);
+            $this->incentives->record($data);
         } catch (\RuntimeException|\InvalidArgumentException $e) {
             throw ValidationException::withMessages(['amount' => $e->getMessage()]);
         }
 
         return redirect()->route('incentives.index')->with('status', __('ui.common.saved'));
+    }
+
+    /**
+     * Live remaining due for each row's party — the "baki koto" column. Cached
+     * per party so one supplier's several rows don't re-query.
+     *
+     * @return array<string, float>
+     */
+    private function remainingDues($entries): array
+    {
+        $remaining = [];
+        foreach ($entries as $e) {
+            if (! $e->party_id) {
+                continue;
+            }
+            $key = $e->party_type.':'.$e->party_id;
+            $remaining[$key] ??= $this->reports->partyDue($e->party_type, $e->party_id);
+        }
+
+        return $remaining;
     }
 }
