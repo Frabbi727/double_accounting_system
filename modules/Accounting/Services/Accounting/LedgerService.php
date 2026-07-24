@@ -132,8 +132,8 @@ class LedgerService
         $totals = $query->selectRaw('COALESCE(SUM(l.debit),0) as d, COALESCE(SUM(l.credit),0) as c')
             ->first();
 
-        $debit = (float) $totals->d;
-        $credit = (float) $totals->c;
+        $debit = $totals ? (float) $totals->d : 0.0;
+        $credit = $totals ? (float) $totals->c : 0.0;
 
         return $account->type->increasesWithDebit()
             ? round($debit - $credit, 2)
@@ -143,7 +143,7 @@ class LedgerService
     /**
      * Trial balance: every account with its debit/credit column.
      *
-     * @return array{rows: array, total_debit: float, total_credit: float, balanced: bool}
+     * @return array{rows: array<int, array{code: string, name: string, type: string, debit: float, credit: float}>, total_debit: float, total_credit: float, balanced: bool}
      */
     public function trialBalance(?string $asOf = null): array
     {
@@ -198,6 +198,9 @@ class LedgerService
     // guards
     // ------------------------------------------------------------------
 
+    /**
+     * @param array<int, array{account_id:int, debit?:float, credit?:float, memo?:string}> $lines
+     */
     private function assertBalanced(array $lines): void
     {
         $debit = round(array_sum(array_column($lines, 'debit')), 2);
@@ -212,7 +215,11 @@ class LedgerService
         }
     }
 
-    /** A line must be either a debit or a credit, never both, never neither. */
+    /**
+     * A line must be either a debit or a credit, never both, never neither.
+     *
+     * @param array<int, array{account_id:int, debit?:float, credit?:float, memo?:string}> $lines
+     */
     private function assertNoZeroLines(array $lines): void
     {
         foreach ($lines as $i => $line) {

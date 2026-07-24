@@ -24,7 +24,7 @@ class BackupController extends Controller
         'roles', 'permissions', 'model_has_roles', 'model_has_permissions', 'role_has_permissions',
     ];
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         return view('shop.settings.backup');
     }

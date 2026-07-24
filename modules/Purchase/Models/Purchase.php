@@ -14,6 +14,20 @@ use Modules\Accounting\Models\Supplier;
  * NO stored total/due column — both are derived from the items and the
  * ledger, so nothing can drift.
  */
+/**
+ * @property int $id
+ * @property int|null $supplier_id
+ * @property string|null $invoice_no
+ * @property \Illuminate\Support\Carbon $date
+ * @property string $landed_cost
+ * @property string $paid_amount
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, PurchaseItem> $items
+ */
 class Purchase extends Model
 {
     protected $guarded = [];
@@ -24,16 +38,25 @@ class Purchase extends Model
         'paid_amount' => 'decimal:2',
     ];
 
+    /**
+     * @return HasMany<PurchaseItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
     }
 
+    /**
+     * @return BelongsTo<Supplier, $this>
+     */
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

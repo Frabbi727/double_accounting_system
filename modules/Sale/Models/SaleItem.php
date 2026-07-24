@@ -11,6 +11,17 @@ use Modules\Accounting\Models\Product;
  * the product's weighted-average cost then and never looked up again, so
  * historical profit does not change when the product cost later changes.
  */
+/**
+ * @property int $id
+ * @property int $sale_id
+ * @property int $product_id
+ * @property string $qty
+ * @property string $unit_price
+ * @property string $discount
+ * @property string $cost_price
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class SaleItem extends Model
 {
     protected $guarded = [];
@@ -22,11 +33,17 @@ class SaleItem extends Model
         'cost_price' => 'decimal:4',
     ];
 
+    /**
+     * @return BelongsTo<Sale, $this>
+     */
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

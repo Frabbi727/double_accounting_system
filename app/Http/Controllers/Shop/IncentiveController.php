@@ -27,7 +27,7 @@ class IncentiveController extends Controller
         private LedgerService $ledger,
     ) {}
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $entries = PartyIncentive::where('kind', 'incentive')
             ->latest('date')->latest('id')->limit(100)->get();
@@ -43,20 +43,24 @@ class IncentiveController extends Controller
      * how the amount was computed, how it was settled, the party's live
      * remaining due, and the exact debit/credit it posted.
      */
-    public function show(PartyIncentive $incentive)
+    public function show(PartyIncentive $incentive): \Illuminate\View\View
     {
         abort_if($incentive->kind !== 'incentive', 404);
 
         $incentive->load('journalEntry.lines.account', 'settleAccount', 'creator');
 
-        $remainingDue = $incentive->party_id
-            ? $this->reports->partyDue($incentive->party_type, $incentive->party_id)
-            : null;
+        $partyType = $incentive->party_type;
+        $remainingDue = null;
+
+        if ($incentive->party_id && in_array($partyType, ['customer', 'supplier'])) {
+            /** @var 'customer'|'supplier' $partyType */
+            $remainingDue = $this->reports->partyDue($partyType, $incentive->party_id);
+        }
 
         return view('shop.incentive.voucher', compact('incentive', 'remainingDue'));
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         $accounts = Account::cashOrBank()->orderBy('code')->get();
 
@@ -72,7 +76,7 @@ class IncentiveController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
             'direction' => ['required', 'in:received,given'],
@@ -105,17 +109,20 @@ class IncentiveController extends Controller
      * Live remaining due for each row's party — the "baki koto" column. Cached
      * per party so one supplier's several rows don't re-query.
      *
+     * @param iterable<mixed, PartyIncentive> $entries
      * @return array<string, float>
      */
-    private function remainingDues($entries): array
+    private function remainingDues(iterable $entries): array
     {
         $remaining = [];
         foreach ($entries as $e) {
-            if (! $e->party_id) {
+            if (! $e->party_id || ! in_array($e->party_type, ['customer', 'supplier'])) {
                 continue;
             }
             $key = $e->party_type.':'.$e->party_id;
-            $remaining[$key] ??= $this->reports->partyDue($e->party_type, $e->party_id);
+            /** @var 'customer'|'supplier' $partyType */
+            $partyType = $e->party_type;
+            $remaining[$key] ??= $this->reports->partyDue($partyType, $e->party_id);
         }
 
         return $remaining;

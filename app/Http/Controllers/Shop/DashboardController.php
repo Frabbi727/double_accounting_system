@@ -18,8 +18,13 @@ class DashboardController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): \Illuminate\View\View
     {
+        $user = $request->user();
+        if (!$user) {
+            abort(401);
+        }
+
         $today = now()->toDateString();
         $monthStart = now()->startOfMonth()->toDateString();
 
@@ -37,7 +42,7 @@ class DashboardController extends Controller
 
         // Month profit — only for users allowed to see cost/profit.
         $monthProfit = null;
-        if ($request->user()->can('cost.view')) {
+        if ($user->can('cost.view')) {
             $monthProfit = $this->reports->profitAndLoss(
                 asOf: $today,
                 from: $monthStart,
@@ -45,7 +50,7 @@ class DashboardController extends Controller
         }
 
         // Recent ledger activity — only for report viewers.
-        $recent = $request->user()->can('report.view')
+        $recent = $user->can('report.view')
             ? JournalEntry::latest('date')->latest('id')->limit(6)->get()
             : collect();
 

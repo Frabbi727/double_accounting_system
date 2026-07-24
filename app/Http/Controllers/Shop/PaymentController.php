@@ -29,7 +29,7 @@ class PaymentController extends Controller
      * to the party by reference_type (PaymentIn/PaymentOut) + reference_id.
      * The list resolves the party name and their live remaining due per row.
      */
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $entries = JournalEntry::whereIn('reference_type', self::PAYMENT_TYPES)
             ->with('lines.account', 'creator')
@@ -52,18 +52,20 @@ class PaymentController extends Controller
      * cash/bank account it moved through, the party's live remaining due, and
      * the exact debit/credit it posted to the ledger.
      */
-    public function show(JournalEntry $payment)
+    public function show(JournalEntry $payment): \Illuminate\View\View
     {
         abort_if(! in_array($payment->reference_type, self::PAYMENT_TYPES, true), 404);
 
         $payment->load('lines.account', 'creator');
 
         $isReceived = $payment->reference_type === 'PaymentIn';
+        /** @var 'customer'|'supplier' $partyType */
         $partyType = $isReceived ? 'customer' : 'supplier';
         $party = ($isReceived ? Customer::class : Supplier::class)::find($payment->reference_id);
 
-        $remainingDue = $party
-            ? $this->reports->partyDue($partyType, $payment->reference_id)
+        $referenceId = (int) $payment->reference_id;
+        $remainingDue = $party && $referenceId
+            ? $this->reports->partyDue($partyType, $referenceId)
             : null;
 
         return view('shop.payment.voucher', [
@@ -75,7 +77,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(Request $request): \Illuminate\View\View
     {
         // Optional pre-fill from a "settle" link on the due list / statement.
         $direction = $request->input('direction') === 'made' ? 'made' : 'received';
@@ -107,7 +109,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
             'direction' => ['required', 'in:received,made'],
@@ -127,9 +129,11 @@ class PaymentController extends Controller
 
         try {
             if ($data['direction'] === 'received') {
+                /** @var \Modules\Accounting\Models\Customer $customer */
                 $customer = Customer::findOrFail($data['party_id']);
                 $this->payments->receiveFromCustomer($customer, $payload);
             } else {
+                /** @var \Modules\Accounting\Models\Supplier $supplier */
                 $supplier = Supplier::findOrFail($data['party_id']);
                 $this->payments->payToSupplier($supplier, $payload);
             }
@@ -160,15 +164,21 @@ class PaymentController extends Controller
      * Live remaining due per party referenced in the list, keyed "type:id",
      * deduplicated so each party is queried at most once.
      *
+     * @param iterable<mixed, JournalEntry> $entries
      * @return array<string, float>
      */
-    private function remainingDues($entries): array
+    private function remainingDues(iterable $entries): array
     {
         $remaining = [];
         foreach ($entries as $e) {
+            /** @var 'customer'|'supplier' $party */
             $party = $e->reference_type === 'PaymentIn' ? 'customer' : 'supplier';
-            $key = $party.':'.$e->reference_id;
-            $remaining[$key] ??= $this->reports->partyDue($party, $e->reference_id);
+            $referenceId = (int) $e->reference_id;
+            if (!$referenceId) {
+                continue;
+            }
+            $key = $party.':'.$referenceId;
+            $remaining[$key] ??= $this->reports->partyDue($party, $referenceId);
         }
 
         return $remaining;

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Product;
@@ -14,14 +16,14 @@ class StockAdjustmentController extends Controller
         private StockAdjustmentService $adjustments,
     ) {}
 
-    public function create()
+    public function create(): View
     {
         return view('shop.stock_loss.create', [
             'products' => Product::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
@@ -32,7 +34,7 @@ class StockAdjustmentController extends Controller
 
         try {
             $this->adjustments->recordLoss(
-                Product::findOrFail($data['product_id']),
+                Product::where('id', $data['product_id'])->firstOrFail(),
                 (float) $data['qty'],
                 ['date' => $data['date'], 'reason' => $data['reason'] ?? null],
             );

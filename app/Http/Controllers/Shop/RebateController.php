@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Product;
 use Modules\Accounting\Models\Supplier;
-use Modules\Accounting\Services\Accounting\LedgerService;
 use Modules\Accounting\Services\Reporting\ReportService;
 use Modules\Incentive\Models\PartyIncentive;
 use Modules\Incentive\Services\RebateService;
@@ -24,10 +25,9 @@ class RebateController extends Controller
     public function __construct(
         private RebateService $rebates,
         private ReportService $reports,
-        private LedgerService $ledger,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         $entries = PartyIncentive::where('kind', 'rebate')
             ->with('product')->latest('date')->latest('id')->limit(100)->get();
@@ -44,7 +44,7 @@ class RebateController extends Controller
      * supplier's live remaining due, and the exact debit/credit it posted.
      * Reuses the shared incentive voucher view.
      */
-    public function show(PartyIncentive $rebate)
+    public function show(PartyIncentive $rebate): View
     {
         abort_if($rebate->kind !== 'rebate', 404);
 
@@ -60,7 +60,7 @@ class RebateController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         $accounts = Account::cashOrBank()->orderBy('code')->get();
 
@@ -75,7 +75,7 @@ class RebateController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
@@ -104,8 +104,11 @@ class RebateController extends Controller
         return redirect()->route('rebates.index')->with('status', __('ui.common.saved'));
     }
 
-    /** @return array<string, float> */
-    private function remainingDues($entries): array
+    /**
+     * @param iterable<\Modules\Incentive\Models\PartyIncentive> $entries
+     * @return array<string, float>
+     */
+    private function remainingDues(iterable $entries): array
     {
         $remaining = [];
         foreach ($entries as $e) {

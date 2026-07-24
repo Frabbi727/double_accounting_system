@@ -4,6 +4,15 @@ namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $name_bn
+ * @property string $name_en
+ * @property string $name
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Unit extends Model
 {
     protected $guarded = [];

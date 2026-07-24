@@ -13,6 +13,20 @@ use Modules\Accounting\Models\Customer;
  * discount, COGS, inventory); this record holds only document facts. There
  * is NO stored total/due column — everything is derived.
  */
+/**
+ * @property int $id
+ * @property int|null $customer_id
+ * @property string|null $invoice_no
+ * @property \Illuminate\Support\Carbon $date
+ * @property string $discount
+ * @property string $paid_amount
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SaleItem> $items
+ */
 class Sale extends Model
 {
     protected $guarded = [];
@@ -23,16 +37,25 @@ class Sale extends Model
         'paid_amount' => 'decimal:2',
     ];
 
+    /**
+     * @return HasMany<SaleItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

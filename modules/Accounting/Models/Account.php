@@ -2,15 +2,29 @@
 
 namespace Modules\Accounting\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Accounting\Enums\AccountType;
 
+/**
+ * @property int $id
+ * @property string $code
+ * @property string $name_bn
+ * @property string $name_en
+ * @property string $name
+ * @property \Modules\Accounting\Enums\AccountType $type
+ * @property string $subtype
+ * @property int|null $parent_id
+ * @property bool $is_system
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Account code(string $code)
+ * @method static \Illuminate\Database\Eloquent\Builder|Account cashOrBank()
+ */
 class Account extends Model
 {
-    use HasFactory;
-
     protected $guarded = [];
 
     protected $casts = [
@@ -34,22 +48,36 @@ class Account extends Model
             ?? '';
     }
 
+    /**
+     * @return HasMany<JournalEntryLine, $this>
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(JournalEntryLine::class);
     }
 
+    /**
+     * @return HasMany<Account, $this>
+     */
     public function children(): HasMany
     {
         return $this->hasMany(Account::class, 'parent_id');
     }
 
-    public function scopeCode($query, string $code)
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder<Account> $query
+     * @return \Illuminate\Database\Eloquent\Builder<Account>
+     */
+    public function scopeCode(\Illuminate\Database\Eloquent\Builder $query, string $code): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('code', $code);
     }
 
-    public function scopeCashOrBank($query)
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder<Account> $query
+     * @return \Illuminate\Database\Eloquent\Builder<Account>
+     */
+    public function scopeCashOrBank(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->whereIn('subtype', ['cash', 'bank']);
     }

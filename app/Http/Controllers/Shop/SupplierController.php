@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Supplier;
 use Modules\Accounting\Services\Master\SupplierService;
@@ -16,7 +18,7 @@ class SupplierController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         $suppliers = Supplier::orderBy('name')->get();
 
@@ -30,7 +32,7 @@ class SupplierController extends Controller
     }
 
     /** Full history/statement for one supplier — reachable even at zero due. */
-    public function show(Supplier $supplier)
+    public function show(Supplier $supplier): View
     {
         return view('shop.supplier.show', [
             'record' => $supplier,
@@ -40,12 +42,12 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('shop.supplier.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],

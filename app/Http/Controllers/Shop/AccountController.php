@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\Accounting\LedgerService;
@@ -17,7 +19,7 @@ class AccountController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         $accounts = Account::whereIn('subtype', ['cash', 'bank', 'loan'])
             ->orderBy('code')->get();
@@ -34,10 +36,10 @@ class AccountController extends Controller
      * Full activity statement for one account — how money came in, where it
      * went, to whom, and the running balance — so account history is auditable.
      */
-    public function statement(Request $request, Account $account)
+    public function statement(Request $request, Account $account): View
     {
-        $from = $request->input('from', now()->startOfMonth()->toDateString());
-        $to = $request->input('to', now()->toDateString());
+        $from = (string) $request->input('from', now()->startOfMonth()->toDateString());
+        $to = (string) $request->input('to', now()->toDateString());
 
         return view('shop.account.statement', [
             'from'   => $from,
@@ -46,12 +48,12 @@ class AccountController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('shop.account.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],

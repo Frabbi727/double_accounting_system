@@ -8,7 +8,7 @@ use Modules\Accounting\Models\ProductCategory;
 
 class ProductCategoryController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         return view('shop.category.index', [
             'categories' => ProductCategory::whereNull('parent_id')
@@ -16,7 +16,7 @@ class ProductCategoryController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $data = $request->validate([
             'name_bn' => ['required', 'string', 'max:255'],
@@ -46,7 +46,7 @@ class ProductCategoryController extends Controller
             ->with('status', __('ui.common.saved'));
     }
 
-    public function destroy(ProductCategory $product_category)
+    public function destroy(ProductCategory $product_category): \Illuminate\Http\RedirectResponse
     {
         if ($product_category->children()->exists() || $product_category->products()->exists()) {
             return back()->with('warning', __('ui.category.in_use'));

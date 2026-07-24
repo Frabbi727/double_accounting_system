@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
@@ -15,7 +17,7 @@ class SaleReturnController extends Controller
         private SaleReturnService $returns,
     ) {}
 
-    public function create(Request $request)
+    public function create(Request $request): View
     {
         $sale = $request->filled('sale_id')
             ? Sale::with('items.product')->find($request->integer('sale_id'))
@@ -28,7 +30,7 @@ class SaleReturnController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'sale_id' => ['required', 'exists:sales,id'],
@@ -52,7 +54,7 @@ class SaleReturnController extends Controller
 
         try {
             $this->returns->returnSale(
-                Sale::findOrFail($data['sale_id']),
+                Sale::where('id', $data['sale_id'])->firstOrFail(),
                 $items,
                 [
                     'date' => $data['date'],

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\JournalEntry;
 use Modules\Accounting\Models\Supplier;
@@ -22,22 +23,22 @@ class ReportController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         return view('shop.report.index');
     }
 
-    public function trialBalance()
+    public function trialBalance(): View
     {
         return view('shop.report.trial_balance', $this->ledger->trialBalance());
     }
 
-    public function balanceSheet()
+    public function balanceSheet(): View
     {
         return view('shop.report.balance_sheet', $this->reports->balanceSheet());
     }
 
-    public function dayBook(Request $request)
+    public function dayBook(Request $request): View
     {
         $date = $request->input('date', now()->toDateString());
 
@@ -47,7 +48,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function aging(Request $request)
+    public function aging(Request $request): View
     {
         $party = $request->input('party') === 'supplier' ? 'supplier' : 'customer';
 
@@ -57,7 +58,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function cashBook(Request $request)
+    public function cashBook(Request $request): View
     {
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
@@ -69,7 +70,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function lowStock()
+    public function lowStock(): View
     {
         $rows = collect($this->reports->stock()['rows'])
             ->filter(fn ($r) => $r['low_stock'])
@@ -78,10 +79,14 @@ class ReportController extends Controller
         return view('shop.report.low_stock', ['rows' => $rows]);
     }
 
-    public function productProfit(Request $request)
+    public function productProfit(Request $request): View
     {
         // Product profit reveals cost — double-guard beyond report.view.
-        abort_unless($request->user()->can('cost.view'), 403);
+        $user = $request->user();
+        if (!$user) {
+            abort(401);
+        }
+        abort_unless($user->can('cost.view'), 403);
 
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
@@ -93,7 +98,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function partyStatement(Request $request)
+    public function partyStatement(Request $request): View
     {
         $party = $request->input('party') === 'supplier' ? 'supplier' : 'customer';
         $parties = ($party === 'supplier' ? Supplier::query() : Customer::query())
@@ -110,7 +115,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function auditLog(Request $request)
+    public function auditLog(Request $request): View
     {
         $type = $request->input('type');
         $from = $request->input('from');
@@ -132,12 +137,12 @@ class ReportController extends Controller
         ]);
     }
 
-    public function stock()
+    public function stock(): View
     {
         return view('shop.report.stock', $this->reports->stock());
     }
 
-    public function customerDue()
+    public function customerDue(): View
     {
         return view('shop.report.party_due', [
             'title' => __('ui.report.customer_due'),
@@ -147,7 +152,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function supplierDue()
+    public function supplierDue(): View
     {
         return view('shop.report.party_due', [
             'title' => __('ui.report.supplier_due'),
@@ -157,7 +162,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function profitLoss()
+    public function profitLoss(): View
     {
         return view('shop.report.profit_loss', $this->reports->profitAndLoss());
     }

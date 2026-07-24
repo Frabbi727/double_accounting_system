@@ -2,15 +2,26 @@
 
 namespace Modules\Accounting\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $name_normalized
+ * @property string|null $sku
+ * @property int|null $product_category_id
+ * @property string $unit
+ * @property string $cost_price
+ * @property string $sale_price
+ * @property int $reorder_level
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Product extends Model
 {
-    use HasFactory;
-
     protected $guarded = [];
 
     protected $casts = [
@@ -23,15 +34,21 @@ class Product extends Model
     {
         // Keep the normalized name in sync for duplicate detection.
         static::saving(function (Product $product) {
-            $product->name_normalized = mb_strtolower(trim(preg_replace('/\s+/u', ' ', $product->name)));
+            $product->name_normalized = mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', (string) $product->name)));
         });
     }
 
+    /**
+     * @return HasMany<StockMovement, $this>
+     */
     public function movements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }
 
+    /**
+     * @return BelongsTo<ProductCategory, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');

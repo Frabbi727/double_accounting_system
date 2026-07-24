@@ -16,26 +16,26 @@ class ProductController extends Controller
         private ProductService $products,
     ) {}
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         return view('shop.product.index', [
             'products' => Product::with('category.parent')->orderBy('name')->get(),
         ]);
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         return view('shop.product.create', $this->formData());
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): \Illuminate\Http\RedirectResponse
     {
         $this->products->create($request->validated());
 
         return redirect()->route('products.index')->with('status', __('ui.common.saved'));
     }
 
-    public function show(Product $product)
+    public function show(Product $product): \Illuminate\View\View
     {
         return view('shop.product.show', [
             'product' => $product->load('category.parent'),
@@ -44,14 +44,14 @@ class ProductController extends Controller
         ]);
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): \Illuminate\View\View
     {
         return view('shop.product.edit', array_merge($this->formData(), [
             'product' => $product,
         ]));
     }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): \Illuminate\Http\RedirectResponse
     {
         $this->products->update($product, $request->validated());
 
@@ -63,7 +63,7 @@ class ProductController extends Controller
      * without breaking the ledger/reports, so it is deactivated instead
      * (drops out of every transaction picker, history stays intact).
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): \Illuminate\Http\RedirectResponse
     {
         if ($product->movements()->exists()) {
             $product->update(['is_active' => false]);
@@ -78,7 +78,11 @@ class ProductController extends Controller
             ->with('status', __('ui.product.deleted'));
     }
 
-    /** Shared category tree + unit list for the create/edit forms. */
+    /** 
+     * Shared category tree + unit list for the create/edit forms.
+     * 
+     * @return array<string, mixed>
+     */
     private function formData(): array
     {
         return [

@@ -1,3 +1,6 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
 parameters:
     level: 8
     paths:
@@ -6,3 +9,4 @@ parameters:
         - tests
     excludePaths:
         - modules/*/database/*
+

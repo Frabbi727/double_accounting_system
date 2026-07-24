@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\ShopProfile;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class ShopProfileController extends Controller
 {
-    public function edit()
+    public function edit(): View
     {
         return view('shop.settings.profile', [
             'name' => ShopProfile::name(),
@@ -24,7 +26,7 @@ class ShopProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -42,7 +44,10 @@ class ShopProfileController extends Controller
             $this->deleteExistingLogo();
         }
         if ($request->hasFile('logo')) {
-            Setting::put('shop.logo', $request->file('logo')->store('logo', 'public'));
+            $path = $request->file('logo')?->store('logo', 'public');
+            if (is_string($path)) {
+                Setting::put('shop.logo', $path);
+            }
         } elseif ($request->boolean('remove_logo')) {
             Setting::put('shop.logo', null);
         }

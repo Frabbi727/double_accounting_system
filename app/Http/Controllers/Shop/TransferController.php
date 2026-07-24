@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\Account;
@@ -16,7 +18,7 @@ class TransferController extends Controller
         private LedgerService $ledger,
     ) {}
 
-    public function create()
+    public function create(): View
     {
         $accounts = Account::whereIn('subtype', ['cash', 'bank', 'loan'])->orderBy('code')->get();
 
@@ -29,7 +31,7 @@ class TransferController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'from_account_id' => ['required', 'exists:accounts,id'],
@@ -41,8 +43,8 @@ class TransferController extends Controller
 
         try {
             $this->transfers->transfer(
-                Account::findOrFail($data['from_account_id']),
-                Account::findOrFail($data['to_account_id']),
+                Account::where('id', $data['from_account_id'])->firstOrFail(),
+                Account::where('id', $data['to_account_id'])->firstOrFail(),
                 ['amount' => $data['amount'], 'date' => $data['date'], 'notes' => $data['notes'] ?? null],
             );
         } catch (\RuntimeException|\InvalidArgumentException $e) {

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Modules\Accounting\Models\Product;
 use Modules\Accounting\Models\Supplier;
 use Modules\Purchase\Models\Purchase;
@@ -16,14 +18,14 @@ class PurchaseController extends Controller
         private PurchaseService $purchases,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         return view('shop.purchase.index', [
             'purchases' => Purchase::latest('date')->latest('id')->limit(50)->get(),
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('shop.purchase.create', [
             'products' => Product::where('is_active', true)->orderBy('name')->get(),
@@ -31,7 +33,7 @@ class PurchaseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'supplier_id' => ['nullable', 'exists:suppliers,id'],
@@ -53,7 +55,7 @@ class PurchaseController extends Controller
         return redirect()->route('purchases.index')->with('status', __('ui.common.saved'));
     }
 
-    public function print(Purchase $purchase)
+    public function print(Purchase $purchase): View
     {
         return view('shop.purchase.print', [
             'purchase' => $purchase->load('items.product', 'supplier'),

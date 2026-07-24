@@ -14,7 +14,7 @@ class OpeningController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $bs = $this->reports->balanceSheet();
 
@@ -27,9 +27,14 @@ class OpeningController extends Controller
         ]);
     }
 
-    public function lock(Request $request)
+    public function lock(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $this->periodLock->lockOpening($request->user()->id);
+        $user = $request->user();
+        if (!$user) {
+            abort(401);
+        }
+        
+        $this->periodLock->lockOpening($user->id);
 
         return redirect()->route('opening.index')->with('status', __('ui.opening.locked_note'));
     }

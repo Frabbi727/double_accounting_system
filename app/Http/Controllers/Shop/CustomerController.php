@@ -16,7 +16,7 @@ class CustomerController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $customers = Customer::orderBy('name')->get();
 
@@ -30,7 +30,7 @@ class CustomerController extends Controller
     }
 
     /** Full history/statement for one customer — reachable even at zero due. */
-    public function show(Customer $customer)
+    public function show(Customer $customer): \Illuminate\View\View
     {
         return view('shop.customer.show', [
             'record' => $customer,
@@ -40,12 +40,12 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         return view('shop.customer.create');
     }
 
-    public function store(StoreCustomerRequest $request)
+    public function store(StoreCustomerRequest $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
 

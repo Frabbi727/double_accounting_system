@@ -17,7 +17,7 @@ class ExpenseController extends Controller
         private LedgerService $ledger,
     ) {}
 
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         return view('shop.expense.index', [
             'entries' => JournalEntry::where('reference_type', 'Expense')
@@ -25,7 +25,7 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         $paymentAccounts = Account::cashOrBank()->orderBy('code')->get();
 
@@ -38,7 +38,7 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
             'expense_account_id' => ['required', 'exists:accounts,id'],

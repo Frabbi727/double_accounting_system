@@ -24,7 +24,7 @@ class ExportController extends Controller
         private ReportService $reports,
     ) {}
 
-    public function trialBalance(Request $request)
+    public function trialBalance(Request $request): StreamedResponse|\Illuminate\Http\Response
     {
         $data = $this->ledger->trialBalance();
         $rows = array_map(fn ($r) => [
@@ -36,7 +36,7 @@ class ExportController extends Controller
         ], $rows);
     }
 
-    public function stock(Request $request)
+    public function stock(Request $request): StreamedResponse|\Illuminate\Http\Response
     {
         $data = $this->reports->stock();
         $rows = array_map(fn ($r) => [
@@ -51,7 +51,7 @@ class ExportController extends Controller
         ], $rows);
     }
 
-    public function accountStatement(Request $request, Account $account)
+    public function accountStatement(Request $request, Account $account): StreamedResponse|\Illuminate\Http\Response
     {
         $from = $request->input('from', now()->startOfMonth()->toDateString());
         $to = $request->input('to', now()->toDateString());
@@ -94,12 +94,19 @@ class ExportController extends Controller
             : $this->csv($title, $slug, $headers, $rows);
     }
 
+    /**
+     * @param  array<int, string>  $headers
+     * @param  array<int, array<int, string>>  $rows
+     */
     private function csv(string $title, string $slug, array $headers, array $rows): StreamedResponse
     {
         $filename = "{$slug}-".now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($title, $headers, $rows) {
             $out = fopen('php://output', 'w');
+            if ($out === false) {
+                abort(500, 'Could not open output stream');
+            }
             fprintf($out, "\xEF\xBB\xBF"); // UTF-8 BOM so Excel reads Bangla correctly.
             fputcsv($out, [$title]);
             fputcsv($out, $headers);
@@ -110,6 +117,10 @@ class ExportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    /**
+     * @param  array<int, string>  $headers
+     * @param  array<int, array<int, string>>  $rows
+     */
     private function pdf(string $title, string $slug, array $headers, array $rows): \Illuminate\Http\Response
     {
         $pdf = Pdf::loadView('shop.export.table', [

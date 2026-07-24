@@ -2,14 +2,23 @@
 
 namespace Modules\Accounting\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $name_normalized
+ * @property string|null $phone
+ * @property string|null $address
+ * @property string $credit_limit
+ * @property string $default_discount_percent
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Customer extends Model
 {
-    use HasFactory;
-
     protected $guarded = [];
 
     protected $casts = [
@@ -21,10 +30,13 @@ class Customer extends Model
     protected static function booted(): void
     {
         static::saving(function (Customer $customer) {
-            $customer->name_normalized = mb_strtolower(trim(preg_replace('/\s+/u', ' ', $customer->name)));
+            $customer->name_normalized = mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', (string) $customer->name)));
         });
     }
 
+    /**
+     * @return MorphMany<OpeningPartyBalance, $this>
+     */
     public function openingBalances(): MorphMany
     {
         return $this->morphMany(OpeningPartyBalance::class, 'party');

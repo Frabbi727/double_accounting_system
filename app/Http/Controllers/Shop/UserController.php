@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -15,19 +17,19 @@ use Spatie\Permission\Models\Role;
  */
 class UserController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         return view('shop.user.index', [
             'users' => User::with('roles')->orderBy('name')->get(),
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('shop.user.create', ['roles' => $this->roles()]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -46,7 +48,7 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('status', __('ui.common.saved'));
     }
 
-    public function edit(User $user)
+    public function edit(User $user): View
     {
         return view('shop.user.edit', [
             'user' => $user->load('roles'),
@@ -54,7 +56,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -77,9 +79,13 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('status', __('ui.common.saved'));
     }
 
-    public function destroy(Request $request, User $user)
+    public function destroy(Request $request, User $user): RedirectResponse
     {
-        if ($user->id === $request->user()->id) {
+        $authUser = $request->user();
+        if (! $authUser) {
+            abort(401);
+        }
+        if ($user->id === $authUser->id) {
             return back()->withErrors(['user' => __('ui.user.no_self_delete')]);
         }
         if ($user->hasRole('owner') && $this->ownerCount() <= 1) {

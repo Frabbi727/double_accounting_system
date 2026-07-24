@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Cache;
 /**
  * Simple key-value application settings (e.g. the shop profile). Reads are
  * cached; every write clears the cache so the next read is fresh.
+ *
+ * @property int $id
+ * @property string $key
+ * @property string|null $value
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class Setting extends Model
 {
@@ -17,7 +23,7 @@ class Setting extends Model
 
     public static function get(string $key, ?string $default = null): ?string
     {
-        return static::all_cached()[$key] ?? $default;
+        return self::all_cached()[$key] ?? $default;
     }
 
     public static function put(string $key, ?string $value): void

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\Product;
@@ -17,7 +19,7 @@ class SaleController extends Controller
         private SaleService $sales,
     ) {}
 
-    public function index()
+    public function index(): View
     {
         return view('shop.sale.index', [
             'sales' => Sale::latest('date')->latest('id')->limit(50)->get(),
@@ -29,7 +31,7 @@ class SaleController extends Controller
      * safe for the salesperson to print (NFR-07). ?format=receipt renders a
      * narrow thermal-printer layout.
      */
-    public function print(Sale $sale)
+    public function print(Sale $sale): View
     {
         return view('shop.sale.print', [
             'sale' => $sale->load('items.product', 'customer'),
@@ -37,7 +39,7 @@ class SaleController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         $customers = Customer::orderBy('name')->get();
 
@@ -54,7 +56,7 @@ class SaleController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'customer_id' => ['nullable', 'exists:customers,id'],

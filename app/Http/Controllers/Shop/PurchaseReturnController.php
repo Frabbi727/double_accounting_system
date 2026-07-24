@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Product;
 use Modules\Adjustment\Services\PurchaseReturnService;
@@ -15,7 +17,7 @@ class PurchaseReturnController extends Controller
         private PurchaseReturnService $returns,
     ) {}
 
-    public function create()
+    public function create(): View
     {
         return view('shop.return.purchase', [
             'products' => Product::where('is_active', true)->orderBy('name')->get(),
@@ -23,7 +25,7 @@ class PurchaseReturnController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'items' => ['required', 'array', 'min:1'],
