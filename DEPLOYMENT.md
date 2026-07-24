@@ -18,6 +18,9 @@ php artisan optimize:clear
 
 # 4. Cache configurations and routes again for production
 php artisan optimize
+
+# 5. Install npm dependencies and build frontend assets
+npm install && npm run build
 ```
 
 ---

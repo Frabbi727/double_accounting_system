@@ -23,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // @taka($amount) → "৳ ১,২০,০০০.০০" (locale-aware money formatting).
         Blade::directive('taka', fn ($expression) => "<?php echo \App\Support\Money::taka($expression); ?>");
+
+        if ($this->app->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }
