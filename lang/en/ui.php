@@ -55,9 +55,75 @@ return [
         'total_liabilities' => 'Total Liabilities',
         'total_equity' => "Owner's Equity",
         'lock' => 'Lock Opening',
+        'review_lock' => 'Review & Lock',
         'locked_note' => 'Opening is locked — daily transactions are now allowed.',
         'unlocked_note' => 'Lock the opening once everything is correct. Daily transactions start after locking.',
         'confirm_lock' => 'Are you sure? No opening can be added after locking.',
+        'cannot_lock' => 'Cannot lock: the books are not balanced. Fix the issue first.',
+
+        // Overall summary
+        'overall' => 'Overall Opening Summary',
+        'opening_cash_position' => 'Opening Cash Position',
+        'total_customer_due' => 'Total Customer Due',
+        'total_supplier_due' => 'Total Supplier Due',
+        'inventory_value' => 'Inventory Value',
+
+        // Category cards
+        'assets' => 'Assets',
+        'liabilities' => 'Liabilities',
+        'equity' => 'Equity',
+        'customers' => 'Customers',
+        'suppliers' => 'Suppliers',
+        'inventory' => 'Inventory',
+        'accounts' => 'Accounts',
+        'total_products' => 'Total Products',
+        'opening_stock_value' => 'Total Opening Stock Value',
+        'customer_count' => 'Customers with opening due',
+        'supplier_count' => 'Suppliers with opening balance',
+        'account_count' => 'Cash / Bank / MFS accounts',
+        'no_rows' => 'Nothing added',
+
+        // Subtype headings
+        'subtype' => [
+            'cash' => 'Cash in Hand',
+            'bank' => 'Bank / Mobile Banking',
+            'inventory' => 'Inventory (Opening Stock)',
+            'receivable' => 'Customer Due (Receivable)',
+            'payable' => 'Supplier Due (Payable)',
+            'loan' => 'Loan',
+            'capital' => "Owner's Capital",
+            'other' => 'Other',
+        ],
+
+        // Missing-information checks
+        'checks' => 'Missing Information Check',
+        'all_good' => 'Everything looks good. You are ready to lock.',
+        'warn' => [
+            'not_balanced' => 'The books are not balanced — you cannot lock until this is fixed.',
+            'no_account' => 'No cash / bank account has been created yet.',
+            'no_cash' => 'No opening cash balance has been entered.',
+            'product_no_stock' => 'Some products have no opening stock.',
+            'customer_no_due' => 'Customers exist but no opening due has been entered.',
+            'supplier_no_balance' => 'Suppliers exist but no opening balance has been entered.',
+        ],
+
+        // Audit (after lock)
+        'audit' => 'Lock History',
+        'locked_by' => 'Locked by',
+        'locked_at' => 'Locked at',
+        'generated_entries' => 'Generated Opening Entries',
+        'entries_count' => 'opening entries generated',
+
+        // Confirmation dialog
+        'confirm_title' => 'Confirm & Lock Opening Balance',
+        'confirm_intro' => 'Please review carefully. Once locked:',
+        'confirm_point1' => 'The business officially starts.',
+        'confirm_point2' => 'Opening balance data can no longer be edited directly.',
+        'confirm_point3' => 'All future transactions are built on this opening balance.',
+        'confirm_point4' => 'Later corrections are only possible through an Adjustment / Journal entry.',
+        'confirm_recap' => 'Summary',
+        'confirm_yes' => 'Confirm & Lock',
+        'confirm_back' => 'Go back',
     ],
 
     'product' => [

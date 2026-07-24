@@ -6,6 +6,8 @@ use App\Models\User;
 use Database\Seeders\ChartOfAccountsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Models\Account;
 use Modules\Accounting\Services\Accounting\PeriodLockService;
 use Tests\TestCase;
 
@@ -32,6 +34,33 @@ class OpeningLockUiTest extends TestCase
         return $user;
     }
 
+    /**
+     * Force the books out of balance by inserting a raw one-sided line straight
+     * into the immutable ledger (bypassing LedgerService, which would reject
+     * it). This is the only way to exercise the not-balanced hard blocker.
+     */
+    private function unbalanceTheBooks(int $userId): void
+    {
+        $cash = Account::code('1010')->firstOrFail();
+
+        $entryId = DB::table('journal_entries')->insertGetId([
+            'date' => '2000-01-01',
+            'reference_type' => 'Opening',
+            'description' => 'Test:unbalanced',
+            'created_by' => $userId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('journal_entry_lines')->insert([
+            'journal_entry_id' => $entryId,
+            'account_id' => $cash->id,
+            'debit' => 100,
+            'credit' => 0,
+            'memo' => null,
+        ]);
+    }
+
     public function test_sale_route_blocked_until_opening_locked(): void
     {
         $owner = $this->owner();
@@ -55,5 +84,49 @@ class OpeningLockUiTest extends TestCase
         $this->actingAs($owner)->post('/opening/lock')->assertRedirect(route('opening.index'));
 
         $this->assertTrue(app(PeriodLockService::class)->isOpeningLocked());
+    }
+
+    public function test_review_screen_renders_for_owner(): void
+    {
+        $owner = $this->owner();
+
+        $this->actingAs($owner)->get('/opening')
+            ->assertOk()
+            ->assertSee(__('ui.opening.overall'))
+            ->assertSee(__('ui.opening.checks'))
+            ->assertSee(__('ui.opening.review_lock'));
+    }
+
+    public function test_lock_is_blocked_when_books_not_balanced(): void
+    {
+        $owner = $this->owner();
+        $this->unbalanceTheBooks($owner->id);
+
+        $this->actingAs($owner)->post('/opening/lock')
+            ->assertRedirect(route('opening.index'))
+            ->assertSessionHas('warning');
+
+        $this->assertFalse(app(PeriodLockService::class)->isOpeningLocked());
+    }
+
+    public function test_audit_info_shows_after_lock(): void
+    {
+        $owner = $this->owner();
+        app(PeriodLockService::class)->lockOpening($owner->id);
+
+        $this->actingAs($owner)->get('/opening')
+            ->assertOk()
+            ->assertSee(__('ui.opening.audit'))
+            ->assertSee(__('ui.opening.locked_by'))
+            ->assertSee($owner->name)
+            ->assertDontSee(__('ui.opening.review_lock'));
+    }
+
+    public function test_review_screen_is_owner_only(): void
+    {
+        $accountant = User::factory()->create();
+        $accountant->assignRole('accountant');
+
+        $this->actingAs($accountant)->get('/opening')->assertForbidden();
     }
 }
